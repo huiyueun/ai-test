@@ -39,3 +39,9 @@ Traceback (most recent call last):
   File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth_zoo/patching_utils.py", line 565, in <module>
     raise RuntimeError("Unsloth: Patch for dynamic quantization failed since current_key_name_str does not exist.")
 RuntimeError: Unsloth: Patch for dynamic quantization failed since current_key_name_str does not exist.
+
+pip install torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121
+pip install transformers==4.36.2
+pip install sentencepiece==0.1.99
+pip install bitsandbytes==0.41.3.post2
+pip install "unsloth[cu121-torch230] @ git+https://github.com/unslothai/unsloth.git"
