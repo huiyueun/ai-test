@@ -1,36 +1,32 @@
-  Preparing metadata (setup.py) ... error
-  error: subprocess-exited-with-error
-  
-  × python setup.py egg_info did not run successfully.
-  │ exit code: 1
-  ╰─> [16 lines of output]
-      /tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/sympy/mpmath/ctx_mp_python.py:873: SyntaxWarning: "is" with a literal. Did you mean "=="?
-        if other is 0:
-      /tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/sympy/mpmath/ctx_mp_python.py:967: SyntaxWarning: "is" with a literal. Did you mean "=="?
-        if other is 0:
-      Traceback (most recent call last):
-        File "<string>", line 2, in <module>
-        File "<pip-setuptools-caller>", line 35, in <module>
-        File "/tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/setup.py", line 37, in <module>
-          import sympy
-        File "/tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/sympy/__init__.py", line 54, in <module>
-          from .plotting import plot, Plot, textplot, plot_backends, plot_implicit
-        File "/tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/sympy/plotting/__init__.py", line 1, in <module>
-          from .plot import plot_backends
-        File "/tmp/pip-install-5rnil4m4/sympy_22b44ea237e345988cdd3f482138163a/sympy/plotting/plot.py", line 29, in <module>
-          from collections import Callable
-      ImportError: cannot import name 'Callable' from 'collections' (/usr/lib/python3.10/collections/__init__.py)
-      [end of output]
-  
-  note: This error originates from a subprocess, and is likely not a problem with pip.
-error: metadata-generation-failed
-
-× Encountered error while generating package metadata.
-╰─> See above for output.
-
-note: This is an issue with the package mentioned above, not pip.
-hint: See above for details.
-
-
-Requirement already satisfied: sympy in /home/huiyu/unsloth-env/lib/python3.10/site-packages (1.14.0)
-Requirement already satisfied: mpmath<1.4,>=1.1.0 in /home/huiyu/unsloth-env/lib/python3.10/site-packages (from sympy) (1.3.0)
+(unsloth-env) (base) huiyu@huiyu-linux2:~/Workspace/test-1$ python step1.py 
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/test-1/step1.py", line 1, in <module>
+    from unsloth import FastModel
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/__init__.py", line 251, in <module>
+    from .models import *
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/__init__.py", line 15, in <module>
+    from .llama     import FastLlamaModel
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/llama.py", line 20, in <module>
+    from ._utils import *
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/_utils.py", line 110, in <module>
+    from unsloth_zoo.vision_utils import (
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth_zoo/vision_utils.py", line 257, in <module>
+    from .dataset_utils import train_on_responses_only as _train_on_responses_only
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth_zoo/dataset_utils.py", line 480, in <module>
+    from trl.trainer.utils import ConstantLengthDataset
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/trl/trainer/utils.py", line 36, in <module>
+    from transformers import (
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 2155, in __getattr__
+    value = getattr(module, name)
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 2154, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 2184, in _get_module
+    raise e
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/utils/import_utils.py", line 2182, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/integrations/integration_utils.py", line 37, in <module>
+    from .. import PreTrainedModel, TFPreTrainedModel, TrainingArguments
+ImportError: cannot import name 'PreTrainedModel' from 'transformers' (/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/__init__.py)
