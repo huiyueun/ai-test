@@ -19,3 +19,23 @@ with torch.no_grad():
 # ✅ 결과 출력
 print("🦥 모델 응답:")
 print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+
+
+
+/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/utils/generic.py:441: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  _torch_pytree._register_pytree_node(
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/test-1/step1.py", line 1, in <module>
+    from unsloth import FastModel
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/__init__.py", line 251, in <module>
+    from .models import *
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/__init__.py", line 15, in <module>
+    from .llama     import FastLlamaModel
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/llama.py", line 20, in <module>
+    from ._utils import *
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth/models/_utils.py", line 84, in <module>
+    from unsloth_zoo.patching_utils import (
+  File "/home/huiyu/unsloth-env/lib/python3.10/site-packages/unsloth_zoo/patching_utils.py", line 565, in <module>
+    raise RuntimeError("Unsloth: Patch for dynamic quantization failed since current_key_name_str does not exist.")
+RuntimeError: Unsloth: Patch for dynamic quantization failed since current_key_name_str does not exist.
