@@ -30,3 +30,7 @@ error: metadata-generation-failed
 
 note: This is an issue with the package mentioned above, not pip.
 hint: See above for details.
+
+
+Requirement already satisfied: sympy in /home/huiyu/unsloth-env/lib/python3.10/site-packages (1.14.0)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /home/huiyu/unsloth-env/lib/python3.10/site-packages (from sympy) (1.3.0)
