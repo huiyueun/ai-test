@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/test-1/test2.py", line 1, in <module>
+    from transformers import PreTrainedModel
+ImportError: cannot import name 'PreTrainedModel' from 'transformers' (/home/huiyu/unsloth-env/lib/python3.10/site-packages/transformers/__init__.py)
