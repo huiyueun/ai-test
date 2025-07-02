@@ -1,13 +1,18 @@
-Unsloth: Tokenizing ["text"]: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 477/477 [00:00<00:00, 13187.46 examples/s]
-Traceback (most recent call last):
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/training/unsloth_train.py", line 104, in <module>
-    trainer = SFTTrainer(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth/trainer.py", line 210, in new_init
-    original_init(self, *args, **kwargs)
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/unsloth_compiled_cache/UnslothSFTTrainer.py", line 1176, in __init__
-    super().__init__(
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/unsloth_compiled_cache/UnslothSFTTrainer.py", line 595, in __init__
-    eval_dataset = self._prepare_dataset(
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/unsloth_compiled_cache/UnslothSFTTrainer.py", line 802, in _prepare_dataset
-    test_text = next(iter(dataset))[dataset_text_field][0]
-IndexError: string index out of range
+def format_sample(example):
+    screen = example.get("input", "")
+    full = example.get("full_summary", "")
+
+    if not screen.strip() or not full.strip():
+        return {"text": None}  # 빈값 제거
+
+    messages = [
+        {"role": "user", "content": f"다음 화면에 대한 요약을 생성하세요:\n{screen}"},
+        {"role": "assistant", "content": full}
+    ]
+    return {"text": tokenizer.apply_chat_template(messages, tokenize=False)}
+
+tokenized_train = tokenized_train.filter(lambda example: example["text"] and example["text"].strip())
+tokenized_eval = tokenized_eval.filter(lambda example: example["text"] and example["text"].strip())
+
+for i in range(5):
+    print(repr(tokenized_eval[i]["text"]))
