@@ -1,3 +1,8 @@
+huiyu@huiyu-linux2:~$ conda create --name unsloth_env \
+    python=3.11 \
+    pytorch-cuda=12.1 \
+    pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers \
+    -y
 Channels:
  - pytorch
  - nvidia
@@ -5,23 +10,368 @@ Channels:
  - defaults
 Platform: linux-64
 Collecting package metadata (repodata.json): done
-Solving environment: failed
+Solving environment: done
 
-PackagesNotFoundError: The following packages are not available from current channels:
+## Package Plan ##
 
-  - python==3.11pytorch.0cuda[build='^12.1$']
+  environment location: /home/huiyu/miniconda3/envs/unsloth_env
 
-Current channels:
+  added / updated specs:
+    - cudatoolkit
+    - python=3.11
+    - pytorch
+    - pytorch-cuda=12.1
+    - xformers
 
-  - https://conda.anaconda.org/pytorch
-  - https://conda.anaconda.org/nvidia
-  - https://conda.anaconda.org/xformers
-  - defaults
 
-To search for alternate channels that may provide the conda package you're
-looking for, navigate to
+The following NEW packages will be INSTALLED:
 
-    https://anaconda.org
+  _libgcc_mutex      pkgs/main/linux-64::_libgcc_mutex-0.1-main 
+  _openmp_mutex      pkgs/main/linux-64::_openmp_mutex-5.1-1_gnu 
+  blas               pkgs/main/linux-64::blas-1.0-mkl 
+  bzip2              pkgs/main/linux-64::bzip2-1.0.8-h5eee18b_6 
+  ca-certificates    pkgs/main/linux-64::ca-certificates-2025.2.25-h06a4308_0 
+  cuda-cudart        nvidia/linux-64::cuda-cudart-12.1.105-0 
+  cuda-cupti         nvidia/linux-64::cuda-cupti-12.1.105-0 
+  cuda-libraries     nvidia/linux-64::cuda-libraries-12.1.0-0 
+  cuda-nvrtc         nvidia/linux-64::cuda-nvrtc-12.1.105-0 
+  cuda-nvtx          nvidia/linux-64::cuda-nvtx-12.1.105-0 
+  cuda-opencl        nvidia/linux-64::cuda-opencl-12.4.127-0 
+  cuda-runtime       nvidia/linux-64::cuda-runtime-12.1.0-0 
+  cudatoolkit        nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10 
+  expat              pkgs/main/linux-64::expat-2.7.1-h6a678d5_0 
+  filelock           pkgs/main/linux-64::filelock-3.17.0-py311h06a4308_0 
+  gmp                pkgs/main/linux-64::gmp-6.3.0-h6a678d5_0 
+  gmpy2              pkgs/main/linux-64::gmpy2-2.2.1-py311h5eee18b_0 
+  intel-openmp       pkgs/main/linux-64::intel-openmp-2025.0.0-h06a4308_1171 
+  jinja2             pkgs/main/linux-64::jinja2-3.1.6-py311h06a4308_0 
+  ld_impl_linux-64   pkgs/main/linux-64::ld_impl_linux-64-2.40-h12ee557_0 
+  libcublas          nvidia/linux-64::libcublas-12.1.0.26-0 
+  libcufft           nvidia/linux-64::libcufft-11.0.2.4-0 
+  libcufile          nvidia/linux-64::libcufile-1.9.1.3-0 
+  libcurand          nvidia/linux-64::libcurand-10.3.5.147-0 
+  libcusolver        nvidia/linux-64::libcusolver-11.4.4.55-0 
+  libcusparse        nvidia/linux-64::libcusparse-12.0.2.55-0 
+  libffi             pkgs/main/linux-64::libffi-3.4.4-h6a678d5_1 
+  libgcc-ng          pkgs/main/linux-64::libgcc-ng-11.2.0-h1234567_1 
+  libgomp            pkgs/main/linux-64::libgomp-11.2.0-h1234567_1 
+  libnpp             nvidia/linux-64::libnpp-12.0.2.50-0 
+  libnvjitlink       nvidia/linux-64::libnvjitlink-12.1.105-0 
+  libnvjpeg          nvidia/linux-64::libnvjpeg-12.1.1.14-0 
+  libstdcxx-ng       pkgs/main/linux-64::libstdcxx-ng-11.2.0-h1234567_1 
+  libuuid            pkgs/main/linux-64::libuuid-1.41.5-h5eee18b_0 
+  libxcb             pkgs/main/linux-64::libxcb-1.17.0-h9b100fa_0 
+  llvm-openmp        pkgs/main/linux-64::llvm-openmp-14.0.6-h9e868ea_0 
+  markupsafe         pkgs/main/linux-64::markupsafe-3.0.2-py311h5eee18b_0 
+  mkl                pkgs/main/linux-64::mkl-2025.0.0-hacee8c2_941 
+  mpc                pkgs/main/linux-64::mpc-1.3.1-h5eee18b_0 
+  mpfr               pkgs/main/linux-64::mpfr-4.2.1-h5eee18b_0 
+  mpmath             pkgs/main/linux-64::mpmath-1.3.0-py311h06a4308_0 
+  ncurses            pkgs/main/linux-64::ncurses-6.4-h6a678d5_0 
+  networkx           pkgs/main/linux-64::networkx-3.4.2-py311h06a4308_0 
+  openssl            pkgs/main/linux-64::openssl-3.0.16-h5eee18b_0 
+  pip                pkgs/main/noarch::pip-25.1-pyhc872135_2 
+  pthread-stubs      pkgs/main/linux-64::pthread-stubs-0.3-h0ce48e5_1 
+  python             pkgs/main/linux-64::python-3.11.13-h1a3bd86_0 
+  pytorch            pytorch/linux-64::pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0 
+  pytorch-cuda       pytorch/linux-64::pytorch-cuda-12.1-ha16c6d3_6 
+  pytorch-mutex      pytorch/noarch::pytorch-mutex-1.0-cuda 
+  pyyaml             pkgs/main/linux-64::pyyaml-6.0.2-py311h5eee18b_0 
+  readline           pkgs/main/linux-64::readline-8.2-h5eee18b_0 
+  setuptools         pkgs/main/linux-64::setuptools-78.1.1-py311h06a4308_0 
+  sqlite             pkgs/main/linux-64::sqlite-3.45.3-h5eee18b_0 
+  sympy              pkgs/main/linux-64::sympy-1.13.3-py311h06a4308_1 
+  tbb                pkgs/main/linux-64::tbb-2022.0.0-hdb19cb5_0 
+  tbb-devel          pkgs/main/linux-64::tbb-devel-2022.0.0-hdb19cb5_0 
+  tk                 pkgs/main/linux-64::tk-8.6.14-h993c535_1 
+  torchtriton        pytorch/linux-64::torchtriton-3.1.0-py311 
+  typing_extensions  pkgs/main/linux-64::typing_extensions-4.12.2-py311h06a4308_0 
+  tzdata             pkgs/main/noarch::tzdata-2025b-h04d1e81_0 
+  wheel              pkgs/main/linux-64::wheel-0.45.1-py311h06a4308_0 
+  xformers           xformers/linux-64::xformers-0.0.28.post3-py311_cu12.1.0_pyt2.5.1 
+  xorg-libx11        pkgs/main/linux-64::xorg-libx11-1.8.12-h9b100fa_1 
+  xorg-libxau        pkgs/main/linux-64::xorg-libxau-1.0.12-h9b100fa_0 
+  xorg-libxdmcp      pkgs/main/linux-64::xorg-libxdmcp-1.1.5-h9b100fa_0 
+  xorg-xorgproto     pkgs/main/linux-64::xorg-xorgproto-2024.1-h5eee18b_1 
+  xz                 pkgs/main/linux-64::xz-5.6.4-h5eee18b_1 
+  yaml               pkgs/main/linux-64::yaml-0.2.5-h7b6447c_0 
+  zlib               pkgs/main/linux-64::zlib-1.2.13-h5eee18b_1 
 
-and use the search bar at the top of the page.
+
+
+Downloading and Extracting Packages:
+
+Preparing transaction: done
+Verifying transaction: failed
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/ApplyGridUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/AsmUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/Atomic.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/CUDAApplyUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/CUDAGraphsUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/CUDATensorMethods.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/DeviceUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/NumericLimits.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/PhiloxUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/ScanUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/cub.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/cub_definitions.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/IndexUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/IntegerDivider.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/OffsetCalculator.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/PhiloxCudaStateRaw.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/TensorInfo.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/cuda/detail/UnpackRaw.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/CUDAJitLoops.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/CUDALoops.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/DeviceSqrt.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/EmbeddingBackwardKernel.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/ForeachFunctors.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/ForeachMinMaxFunctors.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/GridSampler.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/JitLoops.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/KernelUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Loops.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Math.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/MemoryAccess.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/MultiTensorApply.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Normalization.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/PersistentSoftmax.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Pow.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Randperm.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/Reduce.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/ScanUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/SortUtils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/SortingCommon.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/SortingRadixSelect.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/TensorModeKernel.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/UniqueCub.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/UpSample.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/block_reduce.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/fused_adam_amsgrad_impl.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/fused_adam_impl.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/fused_adam_utils.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/fused_adamw_amsgrad_impl.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/fused_adamw_impl.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/im2col.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/reduction_template.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/ATen/native/cuda/vol2col.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/THC/THCAtomics.cuh'
+specified in the package manifest cannot be found.
+
+CondaVerificationError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/include/THC/THCDeviceUtils.cuh'
+specified in the package manifest cannot be found.
+
+SafetyError: The package for pytorch located at /home/huiyu/miniconda3/pkgs/pytorch-2.5.1-py3.11_cuda12.1_cudnn9.1.0_0
+appears to be corrupted. The path 'lib/python3.11/site-packages/torch/lib/libtorch_cuda.so'
+has an incorrect size.
+  reported size: 1152062185 bytes
+  actual size: 554942464 bytes
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::cuda-cupti-12.1.105-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libcupti.so'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::cuda-nvtx-12.1.105-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libnvToolsExt.so'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::cuda-nvtx-12.1.105-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libnvToolsExt.so.1'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::cuda-nvtx-12.1.105-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libnvToolsExt.so.1.0.0'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: defaults/linux-64::intel-openmp-2025.0.0-h06a4308_1171, defaults/linux-64::llvm-openmp-14.0.6-h9e868ea_0
+  path: 'lib/libarcher_static.a'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: defaults/linux-64::intel-openmp-2025.0.0-h06a4308_1171, defaults/linux-64::llvm-openmp-14.0.6-h9e868ea_0
+  path: 'lib/libiomp5.so'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: defaults/linux-64::intel-openmp-2025.0.0-h06a4308_1171, defaults/linux-64::llvm-openmp-14.0.6-h9e868ea_0
+  path: 'lib/libomptarget.so'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::libcurand-10.3.5.147-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libcurand.so.10'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::libcusolver-11.4.4.55-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libcusolver.so.11'
+
+
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: nvidia/linux-64::libcusolver-11.4.4.55-0, nvidia/linux-64::cudatoolkit-11.7.0-hd8887f6_10
+  path: 'lib/libcusolverMg.so.11'
 
