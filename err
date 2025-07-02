@@ -1,0 +1,5 @@
+All the data files must have the same columns, but at some point there are 4 new columns ({'clickable', 'raw_tree', 'status', 'summary'}) and 4 missing columns ({'screenId', 'full_summary', 'input', 'short_summary'}).
+
+This happened while the json dataset builder was generating data using
+
+/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/sample_data/screen_results_deduped.jsonl
