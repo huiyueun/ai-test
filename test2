@@ -1,74 +1,27 @@
-huiyu@huiyu-linux2:~$ conda create --name unsloth_env_2 python=3.11pytorch-cuda=12.1 pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers -y
 Channels:
  - pytorch
  - nvidia
  - xformers
  - defaults
 Platform: linux-64
-Collecting package metadata (repodata.json): - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/linux-64/repodata.json.zst
+Collecting package metadata (repodata.json): done
+Solving environment: failed
 
-\ Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/linux-64/repodata.json.zst
+PackagesNotFoundError: The following packages are not available from current channels:
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/noarch/repodata.json.zst
+  - python==3.11pytorch.0cuda[build='^12.1$']
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/linux-64/repodata.json.zst
+Current channels:
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/noarch/repodata.json.zst
+  - https://conda.anaconda.org/pytorch
+  - https://conda.anaconda.org/nvidia
+  - https://conda.anaconda.org/xformers
+  - defaults
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/noarch/repodata.json.zst
+To search for alternate channels that may provide the conda package you're
+looking for, navigate to
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/noarch/repodata.json.zst
+    https://anaconda.org
 
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/linux-64/repodata.json.zst
-
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/noarch/repodata.json.zst
-
-Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/linux-64/repodata.json.zst
-
-\ Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/linux-64/repodata.json.zst
-
-| Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/linux-64/repodata.json.zst
-
-Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/noarch/repodata.json.zst
-
-Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/linux-64/repodata.json.zst
-
-Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/linux-64/repodata.json.zst
-
-/ Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/noarch/repodata.json.zst
-
-Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/noarch/repodata.json.zst
-
-Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/noarch/repodata.json.zst
-
-- Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/noarch/repodata.json.zst
-
-| Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/linux-64/repodata.json.zst
-
-| Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/linux-64/repodata.json.zst
-
-Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/noarch/repodata.json.zst
-
-/ Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/linux-64/repodata.json.zst
-
-Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/linux-64/repodata.json.zst
-
-- Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/noarch/repodata.json.zst
-
-Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /nvidia/noarch/repodata.json.zst
-
-\ Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pytorch/noarch/repodata.json.zst
-
-Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/main/noarch/repodata.json.zst
-
-Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /pkgs/r/linux-64/repodata.json.zst
-
-/ Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')': /xformers/linux-64/repodata.json.zst
-
-failed
-
-CondaSSLError: Encountered an SSL error. Most likely a certificate verification issue.
-
-Exception: HTTPSConnectionPool(host='conda.anaconda.org', port=443): Max retries exceeded with url: /pytorch/linux-64/repodata.json.zst (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)')))
-
+and use the search bar at the top of the page.
 
