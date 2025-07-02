@@ -1,28 +1,24 @@
-from transformers import TrainingArguments
+#model_name = "../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit"
+model_name = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+model_name_fp16 = "../unsloth_test/models/Qwen3-1.7B"
+max_seq_length = 2048
+save_dir_lora = "output/lora_qwen"
+save_dir_lora_full = "output/lora_full_qwen"
+save_dir_merged = "output/merged_qwen"
+llama_cpp_path = "/home/youngsun/test/llama.cpp"
 
-training_args = TrainingArguments(
-    output_dir = "unsloth-multitask-output",
-    num_train_epochs = 3,
-    per_device_train_batch_size = 4,
-    gradient_accumulation_steps = 4,
-    learning_rate = 2e-5,
-    logging_dir = "./logs",
-    logging_steps = 25,
-    save_strategy = "epoch",       # only "no" or "epoch"
-    save_total_limit = 2,
-    optim = "adamw_8bit",
-    fp16 = True,
-    bf16 = False,
-    report_to = "tensorboard",
-)
+# model_name = "../unsloth_test/models/gemma-3-1b-it-bnb-4bit"
+# model_name_fp16 = "../unsloth_test/models/gemma-3-1b-it"
+# max_seq_length = 2048
+# save_dir_lora = "output/lora"
+# save_dir_lora_full = "output/lora_full"
+# save_dir_merged = "output/merged"
+# llama_cpp_path = "/home/youngsun/test/llama.cpp"
 
-trainer = SFTTrainer(
-    model = model,
-    tokenizer = tokenizer,
-    train_dataset = tokenized_train,
-    eval_dataset = tokenized_eval,
-    args = training_args,
-    dataset_text_field = "text",
-    max_seq_length = 2048,
-    packing = False,
-)
+# model_name = "../unsloth_test/models/gemma-3-4b-it-bnb-4bit"
+# model_name_fp16 = "../unsloth_test/models/gemma-3-4b-it"
+# max_seq_length = 2048
+# save_dir_lora = "output/lora"
+# save_dir_lora_full = "output/lora_full"
+# save_dir_merged = "output/merged"
+# llama_cpp_path = "/home/youngsun/test/llama.cpp"
