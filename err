@@ -1,114 +1,29 @@
-from unsloth import FastLanguageModel
-from unsloth.chat_templates import get_chat_template
-from trl import SFTTrainer
-from datasets import load_dataset
-import torch
-import json
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from transformers import TrainingArguments
 
-from config import model_name, max_seq_length, save_dir_lora
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-
-# === 모델 로드 ===
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = model_name,
-    max_seq_length = max_seq_length,
-    dtype = torch.float16,
-    load_in_4bit = True,
+training_args = TrainingArguments(
+    per_device_train_batch_size = 4,
+    gradient_accumulation_steps = 4,
+    num_train_epochs = 3,
+    evaluation_strategy = "steps",
+    save_strategy = "epoch",
+    learning_rate = 2e-5,
+    save_total_limit = 2,
+    output_dir = "unsloth-multitask-output",
+    optim = "adamw_8bit",
+    fp16 = True,       # 반드시 True
+    bf16 = False,      # 반드시 False
+    logging_dir = "./logs",
+    report_to = "tensorboard",
+    logging_steps = 25,
 )
 
-if "Qwen3" in model_name:
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r = 8,
-        lora_alpha = 16,
-        lora_dropout = 0.05,
-        bias = "none",
-        random_state = 3407,
-    )
-else:
-    model = FastLanguageModel.get_peft_model(
-        model,
-        finetune_vision_layers = False,
-        finetune_language_layers = True,
-        finetune_attention_modules = True,
-        finetune_mlp_modules = True,
-        use_gradient_checkingpointing = True,
-        r = 8,
-        lora_alpha = 16,
-        lora_dropout = 0.05,
-        bias = "none",
-        random_state = 3407,
-    )
-
-FastLanguageModel.for_training(model)  # prepare for SFT
-
-# === 데이터 로드 ===
-project_root = os.path.dirname(os.path.dirname(__file__))
-train_dataset = load_dataset("json", data_files=
-    os.path.join(project_root, "sample_data/full_summaries.jsonl"),
-    split="train")
-
-eval_dataset = load_dataset("json", data_files=
-    os.path.join(project_root, "sample_data/screen_results_deduped.jsonl"),
-    split="train")
-
-# === 전처리 함수 (멀티태스크 구성: short, full, Q&A) ===
-def format_sample(example):
-    #print(example)
-    screen = example.get("input", "")
-    full = example.get("full_summary", "")
-
-    if not screen or not full :
-        return ""
-
-    messages = [
-            {"role":"assistant","content":full}
-            ]
-    return tokenizer.apply_chat_template(messages, tokenize=False)
-
-#=== Tokenize dataset ===
-if "Qwen3" in model_name:
-    tokenizer.padding_side = "left" # for qwen3
-tokenized_train = train_dataset.map(lambda x: {"text": format_sample(x)})
-tokenized_eval = eval_dataset.map(lambda x: {"text": format_sample(x)})
-print(tokenized_train[0]["text"])  # check the result
-print(tokenized_eval[0]["text"])  # check the result
-
-# === SFTTrainer ===
 trainer = SFTTrainer(
     model = model,
+    tokenizer = tokenizer,
     train_dataset = tokenized_train,
     eval_dataset = tokenized_eval,
-    tokenizer = tokenizer,
-    max_seq_length = 2048,
+    args = training_args,
     dataset_text_field = "text",
+    max_seq_length = 2048,
     packing = False,
-    args = dict(
-        per_device_train_batch_size = 4,
-        gradient_accumulation_steps = 4,
-        num_train_epochs = 3,
-        evaluation_strategy = "steps",
-        save_strategy = "epoch",
-        learning_rate = 2e-5,
-        save_total_limit = 2,
-        output_dir = "unsloth-multitask-output",
-        optim = "adamw_8bit",
-        #bf16 = torch.cuda.is_bf16_supported(),
-        fp16 = True,
-        bf16 = False,
-        logging_dir = "./logs",
-        report_to = "tensorboard",
-        logging_steps = 25,
-    )
 )
-
-trainer.train()
-
-model.save_pretrained(save_dir_lora)
-tokenizer.save_pretrained(save_dir_lora)
