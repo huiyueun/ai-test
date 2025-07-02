@@ -1,57 +1,28 @@
-🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
-🦥 Unsloth Zoo will now patch everything to make training faster!
-Traceback (most recent call last):
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 432, in create_new_function
-    new_module, old_path = import_module(compile_folder, name)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 427, in import_module
-    new_module = importlib.import_module(name)
-  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 879, in exec_module
-  File "<frozen importlib._bootstrap_external>", line 1017, in get_code
-  File "<frozen importlib._bootstrap_external>", line 947, in source_to_code
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/home/huiyu/Workspace/test-1/unsloth_compiled_cache/unsloth_compiled_module_llama.py", line 441
-    loss = self.loss_function(logits=logits, labels=labels.to(self.lm_head.weight.device), self.config.vocab_size, **kwargs)
-                                                                                                                           ^
-SyntaxError: positional argument follows keyword argument
+from transformers import TrainingArguments
 
-During handling of the above exception, another exception occurred:
+training_args = TrainingArguments(
+    output_dir = "unsloth-multitask-output",
+    num_train_epochs = 3,
+    per_device_train_batch_size = 4,
+    gradient_accumulation_steps = 4,
+    learning_rate = 2e-5,
+    logging_dir = "./logs",
+    logging_steps = 25,
+    save_strategy = "epoch",       # only "no" or "epoch"
+    save_total_limit = 2,
+    optim = "adamw_8bit",
+    fp16 = True,
+    bf16 = False,
+    report_to = "tensorboard",
+)
 
-Traceback (most recent call last):
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 457, in create_new_function
-    spec.loader.exec_module(new_module)
-  File "<frozen importlib._bootstrap_external>", line 879, in exec_module
-  File "<frozen importlib._bootstrap_external>", line 1017, in get_code
-  File "<frozen importlib._bootstrap_external>", line 947, in source_to_code
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/tmp/unsloth_compiled_cache/unsloth_compiled_module_llama.py", line 441
-    loss = self.loss_function(logits=logits, labels=labels.to(self.lm_head.weight.device), self.config.vocab_size, **kwargs)
-                                                                                                                           ^
-SyntaxError: positional argument follows keyword argument
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 2156, in unsloth_compile_transformers
-    combined_module = create_new_function(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 459, in create_new_function
-    raise RuntimeError(f"Direct module loading failed for {name}: {e}")
-RuntimeError: Direct module loading failed for unsloth_compiled_module_llama: positional argument follows keyword argument (unsloth_compiled_module_llama.py, line 441)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/huiyu/Workspace/test-1/step1.py", line 5, in <module>
-    model, tokenizer = FastModel.from_pretrained(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth/models/loader.py", line 701, in from_pretrained
-    model_types, supports_sdpa = unsloth_compile_transformers(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth/models/_utils.py", line 1239, in unsloth_compile_transformers
-    _unsloth_compile_transformers(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/unsloth_zoo/compiler.py", line 2168, in unsloth_compile_transformers
-    raise RuntimeError(exception)
-RuntimeError: Direct module loading failed for unsloth_compiled_module_llama: positional argument follows keyword argument (unsloth_compiled_module_llama.py, line 441)
+trainer = SFTTrainer(
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = tokenized_train,
+    eval_dataset = tokenized_eval,
+    args = training_args,
+    dataset_text_field = "text",
+    max_seq_length = 2048,
+    packing = False,
+)
