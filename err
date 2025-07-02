@@ -1,24 +1,18 @@
-Traceback (most recent call last):
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/training/unsloth_train.py", line 83, in <module>
-    tokenized_train = tokenized_train.filter(lambda example: example["text"] and example["text"].strip())
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 557, in wrapper
-    out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/fingerprint.py", line 442, in wrapper
-    out = func(dataset, *args, **kwargs)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 3746, in filter
-    indices = self.map(
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 557, in wrapper
-    out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 3079, in map
-    for rank, done, content in Dataset._map_single(**dataset_kwargs):
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 3525, in _map_single
-    for i, batch in iter_outputs(shard_iterable):
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 3475, in iter_outputs
-    yield i, apply_function(example, i, offset=offset)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 3398, in apply_function
-    processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-  File "/home/huiyu/.local/lib/python3.10/site-packages/datasets/arrow_dataset.py", line 6431, in get_indices_from_mask_function
-    mask.append(function(example, *additional_args, **fn_kwargs))
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/training/unsloth_train.py", line 83, in <lambda>
-    tokenized_train = tokenized_train.filter(lambda example: example["text"] and example["text"].strip())
-AttributeError: 'dict' object has no attribute 'strip'
+def format_sample(example):
+    screen = example.get("input", "")
+    full = example.get("full_summary", "")
+
+    if not screen.strip() or not full.strip():
+        return {"text": None}  # None으로 리턴하면 map에서 제거할 수 있음
+
+    messages = [
+        {"role": "user", "content": f"다음 화면에 대한 요약을 생성하세요:\n{screen}"},
+        {"role": "assistant", "content": full}
+    ]
+    return {"text": tokenizer.apply_chat_template(messages, tokenize=False)}
+
+def is_valid(example):
+    return isinstance(example["text"], str) and len(example["text"].strip()) > 0
+
+tokenized_train = tokenized_train.filter(is_valid)
+tokenized_eval = tokenized_eval.filter(is_valid)
