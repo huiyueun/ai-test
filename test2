@@ -1,5 +1,12 @@
-#model_name = "../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit"
-model_name = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+import os
+
+_local_model_path = "../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit"
+
+if os.path.exists(_local_model_path) :
+    model_name = _local_model_path
+else
+    model_name = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+    
 model_name_fp16 = "../unsloth_test/models/Qwen3-1.7B"
 max_seq_length = 2048
 save_dir_lora = "output/lora_qwen"
