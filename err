@@ -7,3 +7,4 @@ Traceback (most recent call last):
   File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/unsloth_compiled_cache/UnslothSFTTrainer.py", line 1071, in __init__
     if not force_float32 and (float16 and use_bf16): raise TypeError('Unsloth: Model is in float16 precision but you want to use bfloat16 precision. Set fp16 to `True` and bf16 to `False`')
 TypeError: Unsloth: Model is in float16 precision but you want to use bfloat16 precision. Set fp16 to `True` and bf16 to `False`
+(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ 
