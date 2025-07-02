@@ -1,3 +1,27 @@
-Could not fetch URL https://pypi.org/simple/unsloth/: There was a problem confirming the ssl certificate: HTTPSConnectionPool(host='pypi.org', port=443): Max retries exceeded with url: /simple/unsloth/ (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1028)'))) - skipping
-ERROR: Could not find a version that satisfies the requirement unsloth (from versions: none)
-ERROR: No matching distribution found for unsloth
+(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ python3 training/unsloth_train.py 
+Unsloth: Patching Xformers to fix some performance issues.
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+WARNING[XFORMERS]: xFormers can't load C++/CUDA extensions. xFormers was built for:
+    PyTorch 2.5.1 with CUDA 1201 (you have 2.7.0+cu126)
+    Python  3.11.10 (you have 3.11.13)
+  Please reinstall xformers (see https://github.com/facebookresearch/xformers#installing-xformers)
+  Memory-efficient attention, SwiGLU, sparse and more won't be available.
+  Set XFORMERS_MORE_DETAILS=1 for more details
+🦥 Unsloth Zoo will now patch everything to make training faster!
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/training/unsloth_train.py", line 19, in <module>
+    model, tokenizer = FastLanguageModel.from_pretrained(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/loader.py", line 339, in from_pretrained
+    return FastModel.from_pretrained(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/loader.py", line 737, in from_pretrained
+    model_types, supports_sdpa = unsloth_compile_transformers(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/_utils.py", line 1238, in unsloth_compile_transformers
+    _unsloth_compile_transformers(
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth_zoo/compiler.py", line 1828, in unsloth_compile_transformers
+    source = eval(f"{model_location}.{module}")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 1, in <module>
+AttributeError: module 'transformers.models.bit.modeling_bit' has no attribute 'Linear'
