@@ -1,3 +1,66 @@
+from unsloth import FastLanguageModel
+from unsloth.chat_templates import get_chat_template
+from trl import SFTTrainer
+from datasets import load_dataset
+import torch
+import json
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from config import model_name, max_seq_length, save_dir_lora
+
+from transformers import TrainingArguments
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+
+# === 모델 로드 ===
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = model_name,
+    max_seq_length = max_seq_length,
+    dtype = torch.float16,
+    load_in_4bit = True,
+)
+
+if "Qwen3" in model_name:
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r = 8,
+        lora_alpha = 16,
+        lora_dropout = 0.05,
+        bias = "none",
+        random_state = 3407,
+    )
+else:
+    model = FastLanguageModel.get_peft_model(
+        model,
+        finetune_vision_layers = False,
+        finetune_language_layers = True,
+        finetune_attention_modules = True,
+        finetune_mlp_modules = True,
+        use_gradient_checkingpointing = True,
+        r = 8,
+        lora_alpha = 16,
+        lora_dropout = 0.05,
+        bias = "none",
+        random_state = 3407,
+    )
+
+FastLanguageModel.for_training(model)  # prepare for SFT
+
+# === 데이터 로드 ===
+project_root = os.path.dirname(os.path.dirname(__file__))
+train_dataset = load_dataset("json", data_files=
+    os.path.join(project_root, "sample_data/full_summaries.jsonl"),
+    split="train")
+
+eval_dataset = load_dataset("json", data_files=
+    os.path.join(project_root, "sample_data/screen_results_deduped.jsonl"),
+    split="train")
+
+# === 전처리 함수 (멀티태스크 구성: short, full, Q&A) ===
 def format_sample(example):
     screen = example.get("input", "")
     full = example.get("full_summary", "")
@@ -13,6 +76,45 @@ def format_sample(example):
 
 def is_valid(example):
     return isinstance(example["text"], str) and len(example["text"].strip()) > 0
-
+    
+#=== Tokenize dataset ===
+if "Qwen3" in model_name:
+    tokenizer.padding_side = "left" # for qwen3
+tokenized_train = train_dataset.map(lambda x: {"text": format_sample(x)})
+tokenized_eval = eval_dataset.map(lambda x: {"text": format_sample(x)})
 tokenized_train = tokenized_train.filter(is_valid)
 tokenized_eval = tokenized_eval.filter(is_valid)
+
+# === SFTTrainer ===
+from transformers import TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir = "unsloth-multitask-output",
+    num_train_epochs = 3,
+    per_device_train_batch_size = 4,
+    gradient_accumulation_steps = 4,
+    learning_rate = 2e-5,
+    logging_dir = "./logs",
+    logging_steps = 25,
+    save_strategy = "epoch",       # only "no" or "epoch"
+    save_total_limit = 2,
+    optim = "adamw_8bit",
+    fp16 = True,
+    bf16 = False,
+    report_to = "tensorboard",
+)
+
+trainer = SFTTrainer(
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = tokenized_train,
+    eval_dataset = tokenized_eval,
+    args = training_args,
+    dataset_text_field = "text",
+    max_seq_length = 2048,
+    packing = False,
+)
+trainer.train()
+
+model.save_pretrained(save_dir_lora)
+tokenizer.save_pretrained(save_dir_lora)
