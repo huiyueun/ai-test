@@ -1,38 +1,20 @@
-import openai
-import os
-
-# 환경 변수에서 API 키 불러오기 (또는 직접 문자열로 대입해도 됨)
-API_KEY = os.getenv("SHUTTLE_API_KEY")
-
-# OpenAI 호환 클라이언트 설정
-client = openai.OpenAI(
-    base_url="https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/",
-    api_key="dummyvalue",  # 실제 인증은 아래 headers로 처리
-    default_headers={
-        "Authorization": f"Basic {API_KEY}",
-        "Content-Type": "application/json",
-    },
-)
-
-def ask_llm(question):
-    # 시스템 프롬프트와 사용자 질문 구성
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": question}
-    ]
-
-    # 모델 호출
-    response = client.chat.completions.create(
-        model="gauss2-37b-instruct",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=512
-    )
-
-    return response.choices[0].message.content
-
-# 예시 질문
-if __name__ == "__main__":
-    question = input("질문을 입력하세요: ")
+(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining/mytest$ python3 talk_with_llm.py 
+질문을 입력하세요: what is it?
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/mytest/talk_with_llm.py", line 37, in <module>
     answer = ask_llm(question)
-    print("💡 답변:", answer)
+             ^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/mytest/talk_with_llm.py", line 25, in ask_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/openai/_utils/_utils.py", line 287, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 1087, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/openai/_base_client.py", line 1249, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/openai/_base_client.py", line 1037, in request
+    raise self._make_status_error_from_response(err.response) from No
