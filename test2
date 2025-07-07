@@ -1,127 +1,158 @@
-from unsloth import FastLanguageModel
-from unsloth.chat_templates import get_chat_template
-from trl import SFTTrainer
-from datasets import load_dataset
-import torch
 import json
+import random
+import zipfile
+from pathlib import Path
+import copy
+import openai
+import time
 import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from config import model_name, max_seq_length, save_dir_lora
-from shutil import copytree
+import llm_utils
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+# Sample data pools for English and Korean UI elements
+hero_titles = ["Stranger Things", "Breaking Bad", "The Crown", "Top Gun: Maverick", "Live News Stream"]
+hero_titles_ko = ["더 글로리", "오징어 게임", "기생충", "이상한 변호사 우영우", "라이브 뉴스 스트림"]
 
+buttons = [["Play", "More Info"], ["Watch", "Details"], ["Install"], ["Preview", "Add to List"]]
 
-# === 모델 로드 ===
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = model_name,
-    max_seq_length = max_seq_length,
-    dtype = torch.float16,
-    load_in_4bit = True,
-)
+tabs_pool = [
+    ["Live", "Apps", "For You"],
+    ["Home", "TV Shows", "Movies", "My List"],
+    ["All", "Gaming", "Music", "News"],
+    ["Top", "New", "Games", "Education"],
+    ["home_i_icon_mode_search.png", "lifestyle_home_i_mode_art.svg", "home_i_icon_mode_lifeplus_normal.png", "home_i_icon_mode_game_selected.png", "home_i_icon_system_settings.svg"]
+]
+tabs_pool_ko = [
+    ["라이브", "앱", "취향저격"],
+    ["홈", "TV 프로그램", "영화", "내 목록"],
+    ["전체", "게임", "음악", "뉴스"]
+]
 
-if "Qwen3" in model_name:
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r = 8,
-        lora_alpha = 16,
-        lora_dropout = 0.05,
-        bias = "none",
-        random_state = 3407,
-    )
-else:
-    model = FastLanguageModel.get_peft_model(
-        model,
-        finetune_vision_layers = False,
-        finetune_language_layers = True,
-        finetune_attention_modules = True,
-        finetune_mlp_modules = True,
-        use_gradient_checkingpointing = True,
-        r = 8,
-        lora_alpha = 16,
-        lora_dropout = 0.05,
-        bias = "none",
-        random_state = 3407,
-    )
+sections_pool = ["Continue Watching", "Recommended", "Trending Now", "Popular Apps", "Top Games"]
+sections_pool_ko = ["이어보기", "추천 콘텐츠", "인기 콘텐츠", "내가 찜한 콘텐츠", "요즘 뜨는 앱"]
 
-FastLanguageModel.for_training(model)  # prepare for SFT
+toolbar_sets = [
+    ["home", "photos", "settings"],
+    ["search", "home", "genres", "settings"],
+    ["home", "shorts", "subscriptions", "library"],
+    ["search", "categories", "my apps"]
+]
+toolbar_sets_ko = [["홈", "사진", "설정"], ["검색", "홈", "카테고리", "설정"]]
 
-project_root = os.path.dirname(os.path.dirname(__file__))
-# === 데이터 로드 ===
-dataset = load_dataset("json", data_files={
-    "train": os.path.join(project_root,"sample_data/train_oversampled.jsonl"),
-    "eval": os.path.join(project_root,"sample_data/eval_oversampled.jsonl")
-})
+apps_list = ["Netflix", "YouTube", "Disney+", "Spotify", "Hulu", "Zoom", "Twitch", "Prime Video"]
+apps_list_ko = ["넷플릭스", "유튜브", "디즈니+", "멜론", "웨이브", "쿠팡플레이", "TVING | 티빙", "왓챠"]
 
-# === 전처리 함수 (멀티태스크 구성: short, full, Q&A) ===
-def format_sample(example):
-    #print(example)
-    messages = []
-    if "input" in example:
-        screen = example["input"]
+regions = ["top", "mid", "btm"]
+
+def generate_screen_json(use_korean: bool):
+    use_toolbar = random.random() < 0.8
+    use_hero = random.random() < 0.9
+    use_apps = random.random() < 0.3
+    use_grid = random.random() < 0.1
+
+    if use_korean:
+        lang = "ko"
+        hero_pool = hero_titles_ko
+        tabs_pool_local = tabs_pool_ko
+        section_pool_local = sections_pool_ko
+        toolbar_pool = toolbar_sets_ko
+        app_pool = apps_list_ko
     else:
-        screen = "{}"
+        lang = "en"
+        hero_pool = hero_titles
+        tabs_pool_local = tabs_pool
+        section_pool_local = sections_pool
+        toolbar_pool = toolbar_sets
+        app_pool = apps_list
 
-    # if "short" in example and example["short"]:
-    #     messages.append({
-    #         "role": "user",
-    #         "content": f"SHORT_SUMMARY: Write a short title for this screen in Korean:\n{screen}"
-    #     })
-    #     messages.append({"role": "assistant", "content": example["short"]})
-    if "full" in example and example["full"]:
-        messages.append({
-            "role": "user",
-            "content": f"Generate a summary for the following screen in Korean:\n{screen}"
-        })
-        if "Qwen3" in model_name:
-            messages.append({"role": "assistant", "content": example["full"]})
+    screen_type = random.choice(["home", "detail", "store", "video", "gaming", "grid"])
+    #layout = {"res": "1920x1080", "lang": lang, "screen_type": screen_type}
+    #layout = {"screen_type": screen_type}
+    layout = {}
+
+    if use_toolbar:
+        use_left = use_grid = random.random() < 0.7
+        if use_left:
+            layout["tb:left"] = random.choice(toolbar_pool)
         else:
-            messages.append({"role": "model", "content": example["full"]})
-    # if "qa" in example and example["qa"]:
-    #     for qa in example["qa"]:
-    #         messages.append({"role": "user", "content": qa["question"]})
-    #         messages.append({"role": "model", "content": qa["answer"]})
-    return tokenizer.apply_chat_template(messages, tokenize=False)
+            layout["tb:right"] = random.choice(toolbar_pool)
 
-#=== Tokenize dataset ===
-if "Qwen3" in model_name:
-    tokenizer.padding_side = "left" # for qwen3
-tokenized = dataset.map(lambda x: {"text": format_sample(x)})
-print(tokenized["train"][10]["text"])  # check the result
+    if use_hero and screen_type in ["home", "store", "video", "gaming"]:
+        hero = random.choice(hero_pool)
+        btns = random.choice(buttons)
+        layout["hero:top"] = f"{hero} | btn: {', '.join(btns)}"
 
-# === SFTTrainer ===
-trainer = SFTTrainer(
-    model = model,
-    tokenizer = tokenizer,
-    train_dataset = tokenized["train"],
-    eval_dataset = tokenized["eval"],
-    args = dict(
-        per_device_train_batch_size = 4,
-        gradient_accumulation_steps = 4,
-        num_train_epochs = 3,
-        evaluation_strategy = "steps",
-        save_strategy = "epoch",
-        learning_rate = 2e-5,
-        save_total_limit = 2,
-        output_dir = "unsloth-multitask-output",
-        optim = "adamw_8bit",
-        fp16 = True,
-        bf16 = False,
-        logging_dir = "./logs",
-        report_to = "tensorboard",
-        logging_steps = 25,
-    ),
-    dataset_text_field = "text",
-    max_seq_length = 2048,
-    packing = False,
+    if screen_type in ["home", "store", "video", "gaming"]:
+        tabs = random.choice(tabs_pool_local)
+        tabs = copy.copy(tabs)
+        layout[f"tabs:{random.choice(regions)}"] = tabs
+
+    if use_grid and screen_type in ["store", "grid"]:
+        layout["grid:main*"] = {
+            "title": "Top Picks" if lang == "en" else "추천 앱",
+            "items": random.sample(app_pool, 6)
+        }
+
+    for _ in range(random.randint(1, 3)):
+        list_key = f"list:{random.choice(regions)}"
+        layout[list_key] = []
+        for _ in range(random.randint(1, 3)):
+            use_title = random.random() < 0.4
+            title = random.choice(section_pool_local)
+            items = random.sample(hero_pool + hero_titles + app_pool, random.randint(1, 5))
+            if use_title:
+                layout[list_key].append(f"[{title}]: {', '.join(items)}")
+            else:
+                layout[list_key].append(f"{', '.join(items)}")
+
+    if use_apps:
+        apps_key = f"apps:{random.choice(regions)}"
+        items = random.sample(app_pool, random.randint(1, 5))
+        layout[apps_key] = f"{', '.join(items)}"
+
+    return layout
+
+# Set your API key
+API_KEY = os.getenv('SHUTTLE_API_KEY')
+MODEL = "gauss2-37b-instruct"
+client = openai.OpenAI(
+     base_url="https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/",
+     api_key="dummyvalue",
+     default_headers={
+         "Authorization": f"Basic {API_KEY}",
+         "Content-Type": "application/json",
+     },
 )
-trainer.train()
 
-model.save_pretrained(save_dir_lora)
-tokenizer.save_pretrained(save_dir_lora)
+def extract_layouts_from_input_file(input_file_path):
+    with open(input_file_path, "r") as file:
+        return json.load(file)
 
-if not os.path.exists("../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit"):
-    copytree("unsloth-multitask-output", "../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit")
+def generate_screen_layout(layouts, index, use_korean):
+    if index < len(layouts):
+        return layouts[index]
+    else:
+        return generate_screen_json(use_korean)
+
+shared_limiter = llm_utils.RateLimiter(max_calls=20, per_seconds=61)
+def generate_dataset(n=20, output_file="synthetic_tv_data_kr.jsonl"):
+    layouts = extract_layouts_from_input_file("sample_data/input.json")
+    with open(output_file, "a") as f:
+        for i in range(n):
+            formatted = json.dumps(
+                (layouts, i, True), ensure_ascii=False, indent=2)
+            print(formatted)
+            summary = llm_utils.llm_request_with_rate_limit(
+                llm_utils.generate_summary_llm,
+                formatted,
+                True,
+                rate_limiter=shared_limiter)
+            
+            record = {
+                "input": formatted,
+                "output": summary
+            }
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+if __name__ == "__main__":
+    generate_dataset(n=500)
