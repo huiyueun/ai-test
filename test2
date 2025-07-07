@@ -112,18 +112,6 @@ def generate_screen_json(use_korean: bool):
 
     return layout
 
-# Set your API key
-API_KEY = os.getenv('SHUTTLE_API_KEY')
-MODEL = "gauss2-37b-instruct"
-client = openai.OpenAI(
-     base_url="https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/",
-     api_key="dummyvalue",
-     default_headers={
-         "Authorization": f"Basic {API_KEY}",
-         "Content-Type": "application/json",
-     },
-)
-
 def extract_layouts_from_input_file(input_file_path):
     with open(input_file_path, "r") as file:
         return json.load(file)
@@ -155,4 +143,4 @@ def generate_dataset(n=20, output_file="synthetic_tv_data_kr.jsonl"):
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 if __name__ == "__main__":
-    generate_dataset(n=500)
+    generate_dataset(n=1)
