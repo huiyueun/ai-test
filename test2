@@ -1,158 +1,38 @@
-import json
-import random
-import zipfile
-from pathlib import Path
-import copy
 import openai
-import time
 import os
 
-import llm_utils
+# 환경 변수에서 API 키 불러오기 (또는 직접 문자열로 대입해도 됨)
+API_KEY = os.getenv("SHUTTLE_API_KEY")
 
-# Sample data pools for English and Korean UI elements
-hero_titles = ["Stranger Things", "Breaking Bad", "The Crown", "Top Gun: Maverick", "Live News Stream"]
-hero_titles_ko = ["더 글로리", "오징어 게임", "기생충", "이상한 변호사 우영우", "라이브 뉴스 스트림"]
-
-buttons = [["Play", "More Info"], ["Watch", "Details"], ["Install"], ["Preview", "Add to List"]]
-
-tabs_pool = [
-    ["Live", "Apps", "For You"],
-    ["Home", "TV Shows", "Movies", "My List"],
-    ["All", "Gaming", "Music", "News"],
-    ["Top", "New", "Games", "Education"],
-    ["home_i_icon_mode_search.png", "lifestyle_home_i_mode_art.svg", "home_i_icon_mode_lifeplus_normal.png", "home_i_icon_mode_game_selected.png", "home_i_icon_system_settings.svg"]
-]
-tabs_pool_ko = [
-    ["라이브", "앱", "취향저격"],
-    ["홈", "TV 프로그램", "영화", "내 목록"],
-    ["전체", "게임", "음악", "뉴스"]
-]
-
-sections_pool = ["Continue Watching", "Recommended", "Trending Now", "Popular Apps", "Top Games"]
-sections_pool_ko = ["이어보기", "추천 콘텐츠", "인기 콘텐츠", "내가 찜한 콘텐츠", "요즘 뜨는 앱"]
-
-toolbar_sets = [
-    ["home", "photos", "settings"],
-    ["search", "home", "genres", "settings"],
-    ["home", "shorts", "subscriptions", "library"],
-    ["search", "categories", "my apps"]
-]
-toolbar_sets_ko = [["홈", "사진", "설정"], ["검색", "홈", "카테고리", "설정"]]
-
-apps_list = ["Netflix", "YouTube", "Disney+", "Spotify", "Hulu", "Zoom", "Twitch", "Prime Video"]
-apps_list_ko = ["넷플릭스", "유튜브", "디즈니+", "멜론", "웨이브", "쿠팡플레이", "TVING | 티빙", "왓챠"]
-
-regions = ["top", "mid", "btm"]
-
-def generate_screen_json(use_korean: bool):
-    use_toolbar = random.random() < 0.8
-    use_hero = random.random() < 0.9
-    use_apps = random.random() < 0.3
-    use_grid = random.random() < 0.1
-
-    if use_korean:
-        lang = "ko"
-        hero_pool = hero_titles_ko
-        tabs_pool_local = tabs_pool_ko
-        section_pool_local = sections_pool_ko
-        toolbar_pool = toolbar_sets_ko
-        app_pool = apps_list_ko
-    else:
-        lang = "en"
-        hero_pool = hero_titles
-        tabs_pool_local = tabs_pool
-        section_pool_local = sections_pool
-        toolbar_pool = toolbar_sets
-        app_pool = apps_list
-
-    screen_type = random.choice(["home", "detail", "store", "video", "gaming", "grid"])
-    #layout = {"res": "1920x1080", "lang": lang, "screen_type": screen_type}
-    #layout = {"screen_type": screen_type}
-    layout = {}
-
-    if use_toolbar:
-        use_left = use_grid = random.random() < 0.7
-        if use_left:
-            layout["tb:left"] = random.choice(toolbar_pool)
-        else:
-            layout["tb:right"] = random.choice(toolbar_pool)
-
-    if use_hero and screen_type in ["home", "store", "video", "gaming"]:
-        hero = random.choice(hero_pool)
-        btns = random.choice(buttons)
-        layout["hero:top"] = f"{hero} | btn: {', '.join(btns)}"
-
-    if screen_type in ["home", "store", "video", "gaming"]:
-        tabs = random.choice(tabs_pool_local)
-        tabs = copy.copy(tabs)
-        layout[f"tabs:{random.choice(regions)}"] = tabs
-
-    if use_grid and screen_type in ["store", "grid"]:
-        layout["grid:main*"] = {
-            "title": "Top Picks" if lang == "en" else "추천 앱",
-            "items": random.sample(app_pool, 6)
-        }
-
-    for _ in range(random.randint(1, 3)):
-        list_key = f"list:{random.choice(regions)}"
-        layout[list_key] = []
-        for _ in range(random.randint(1, 3)):
-            use_title = random.random() < 0.4
-            title = random.choice(section_pool_local)
-            items = random.sample(hero_pool + hero_titles + app_pool, random.randint(1, 5))
-            if use_title:
-                layout[list_key].append(f"[{title}]: {', '.join(items)}")
-            else:
-                layout[list_key].append(f"{', '.join(items)}")
-
-    if use_apps:
-        apps_key = f"apps:{random.choice(regions)}"
-        items = random.sample(app_pool, random.randint(1, 5))
-        layout[apps_key] = f"{', '.join(items)}"
-
-    return layout
-
-# Set your API key
-API_KEY = os.getenv('SHUTTLE_API_KEY')
-MODEL = "gauss2-37b-instruct"
+# OpenAI 호환 클라이언트 설정
 client = openai.OpenAI(
-     base_url="https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/",
-     api_key="dummyvalue",
-     default_headers={
-         "Authorization": f"Basic {API_KEY}",
-         "Content-Type": "application/json",
-     },
+    base_url="https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/",
+    api_key="dummyvalue",  # 실제 인증은 아래 headers로 처리
+    default_headers={
+        "Authorization": f"Basic {API_KEY}",
+        "Content-Type": "application/json",
+    },
 )
 
-def extract_layouts_from_input_file(input_file_path):
-    with open(input_file_path, "r") as file:
-        return json.load(file)
+def ask_llm(question):
+    # 시스템 프롬프트와 사용자 질문 구성
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": question}
+    ]
 
-def generate_screen_layout(layouts, index, use_korean):
-    if index < len(layouts):
-        return layouts[index]
-    else:
-        return generate_screen_json(use_korean)
+    # 모델 호출
+    response = client.chat.completions.create(
+        model="gauss2-37b-instruct",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=512
+    )
 
-shared_limiter = llm_utils.RateLimiter(max_calls=20, per_seconds=61)
-def generate_dataset(n=20, output_file="synthetic_tv_data_kr.jsonl"):
-    layouts = extract_layouts_from_input_file("sample_data/input.json")
-    with open(output_file, "a") as f:
-        for i in range(n):
-            formatted = json.dumps(
-                (layouts, i, True), ensure_ascii=False, indent=2)
-            print(formatted)
-            summary = llm_utils.llm_request_with_rate_limit(
-                llm_utils.generate_summary_llm,
-                formatted,
-                True,
-                rate_limiter=shared_limiter)
-            
-            record = {
-                "input": formatted,
-                "output": summary
-            }
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return response.choices[0].message.content
 
+# 예시 질문
 if __name__ == "__main__":
-    generate_dataset(n=500)
+    question = input("질문을 입력하세요: ")
+    answer = ask_llm(question)
+    print("💡 답변:", answer)
