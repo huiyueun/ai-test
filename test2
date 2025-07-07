@@ -13,22 +13,28 @@ headers = {
 }
 
 # 모델 URL
-url = "https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-37b-instruct/v1/completions"
+url = "https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-2-37b-instruct/v1/chat/completions"
 
 def ask_llm(prompt):
     payload = {
-        "model": "gauss2-37b-instruct",
-        "prompt": f"<|user|>\n{prompt}\n<|assistant|>\n",  # Shuttle 포맷 맞춤
-        "temperature": 0.7,
-        "max_tokens": 512,
-        "stop": ["<|user|>", "<|endoftext|>"]
+        "model": "gauss2.2-37b",
+        "messages" : [
+            {
+                "role" : "user",
+                "content" : "Write 3 sentences that start with SAMSUNG."
+            }
+        ],
+        "temperature":0.3,
+        "top_p" : 0.95
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
     if response.status_code == 200:
-        result = response.json()
-        return result["choices"][0]["text"].strip()
+        print("❌Error:", response.status_code, response.text)
+        return None
+        # result = response.json()
+        # return result["choices"][0]["text"].strip()
     else:
         print("❌ Error:", response.status_code, response.text)
         return None
@@ -37,3 +43,7 @@ if __name__ == "__main__":
     question = input("질문을 입력하세요: ")
     answer = ask_llm(question)
     print("💡 답변:", answer)
+
+
+❌ Error: 200 {"id":"chatcmpl-772957cf-90d0-4c97-a54c-51a10d83c2af","object":"chat.completion","created":1751873140,"model":"gauss2.2-37b","choices":[{"index":0,"message":{"role":"assistant","reasoning_content":null,"content":"SAMSUNG is a global leader in technology, innovation, and consumer electronics.  \nSAMSUNG continues to push boundaries with its cutting-edge products and solutions.  \nSAMSUNG is committed to enhancing people's lives through meaningful and sustainable advancements.","tool_calls":[]},"logprobs":null,"finish_reason":"stop","stop_reason":null}],"usage":{"prompt_tokens":40,"total_tokens":91,"completion_tokens":51,"prompt_tokens_details":null},"prompt_logprobs":null}
+
