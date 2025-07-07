@@ -1,49 +1,39 @@
 import os
 import requests
 import json
-import base64
 
-# API Key 설정
-api_key = os.getenv("SHUTTLE_API_KEY")  # 또는 직접 문자열 삽입
+# API Key (Base64 인코딩된 "username:password" 형식)
+api_key = os.getenv("SHUTTLE_API_KEY")
 
-# 인코딩: Base64 Basic Auth 방식
 headers = {
     "Authorization": f"Basic {api_key}",
     "Content-Type": "application/json",
 }
 
-# 모델 URL
+# Shuttle Gauss2.2-37B 엔드포인트 (주의: 모델 이름과 URL 일치 확인)
 url = "https://inference-webtrial-api.shuttle.sr-cloud.com/gauss2-2-37b-instruct/v1/chat/completions"
 
 def ask_llm(prompt):
     payload = {
         "model": "gauss2.2-37b",
-        "messages" : [
-            {
-                "role" : "user",
-                "content" : "Write 3 sentences that start with SAMSUNG."
-            }
+        "messages": [
+            {"role": "user", "content": prompt}
         ],
-        "temperature":0.3,
-        "top_p" : 0.95
+        "temperature": 0.3,
+        "top_p": 0.95
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
     if response.status_code == 200:
-        print("❌Error:", response.status_code, response.text)
-        return None
-        # result = response.json()
-        # return result["choices"][0]["text"].strip()
+        result = response.json()
+        return result["choices"][0]["message"]["content"].strip()
     else:
-        print("❌ Error:", response.status_code, response.text)
+        print("❌ Error:", response.status_code)
+        print(response.text)
         return None
 
 if __name__ == "__main__":
     question = input("질문을 입력하세요: ")
     answer = ask_llm(question)
-    print("💡 답변:", answer)
-
-
-❌ Error: 200 {"id":"chatcmpl-772957cf-90d0-4c97-a54c-51a10d83c2af","object":"chat.completion","created":1751873140,"model":"gauss2.2-37b","choices":[{"index":0,"message":{"role":"assistant","reasoning_content":null,"content":"SAMSUNG is a global leader in technology, innovation, and consumer electronics.  \nSAMSUNG continues to push boundaries with its cutting-edge products and solutions.  \nSAMSUNG is committed to enhancing people's lives through meaningful and sustainable advancements.","tool_calls":[]},"logprobs":null,"finish_reason":"stop","stop_reason":null}],"usage":{"prompt_tokens":40,"total_tokens":91,"completion_tokens":51,"prompt_tokens_details":null},"prompt_logprobs":null}
-
+    print("\n💡 답변:\n", answer)
