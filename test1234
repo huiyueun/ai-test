@@ -1,18 +1,40 @@
-(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ python3 training/unsloth_train.py 
-🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
-🦥 Unsloth Zoo will now patch everything to make training faster!
-Traceback (most recent call last):
-  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/training/unsloth_train.py", line 19, in <module>
-    model, tokenizer = FastLanguageModel.from_pretrained(
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/loader.py", line 339, in from_pretrained
-    return FastModel.from_pretrained(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/loader.py", line 737, in from_pretrained
-    model_types, supports_sdpa = unsloth_compile_transformers(
-                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/_utils.py", line 1269, in unsloth_compile_transformers
-    temporary_patch()
-  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth_zoo/temporary_patches/gemma.py", line 163, in patch_Gemma3ForConditionalGeneration_causal_mask
-    from transformers.models.gemma3.modeling_gemma3 import (
-ImportError: cannot import name 'StaticCache' from 'transformers.models.gemma3.modeling_gemma3' (/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/transformers/models/gemma3/modeling_gemma3.py)
+
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from config import llama_cpp_path, save_dir_merged
+import subprocess
+
+LLAMA_CLI_BIN = llama_cpp_path + "/build/bin/llama-cli"
+GGUF_MODEL_PATH = save_dir_merged + "/model.gguf"
+
+#GGUF_MODEL_PATH = "../unsloth_test/models/Qwen3-1.7B-Q8_0.gguf"
+MAX_TOKENS = 256
+
+screens = [
+    "{\n  \"hero:top\": \"btn:\\\"광고|더 보기\\\"\",\n  \"list:mid\": [\n    \"\\\"TVING | 티빙\\\"\",\n    \"[\\\"환상적인 여정\\\"]: btn:\\\"노 리사이클\\\",btn:\\\"브로드캐스트\\\",btn:\\\"하라키리\\\",btn:\\\"안녕하세요\\\"\"\n  ],\n  \"tabs:mid\": [\n    \"\\\"추천\\\",\\\"라이브\\\",\\\"앱스\\\"\"\n  ],\n  \"apps:btm\": \"\\\"SmartThings\\\",\\\"삼성 TV Plus\\\",\\\"Netflix\\\",\\\"Prime Video\\\",\\\"YouTube\\\",\\\"TVING | 티빙\\\",\\\"왓챠 | Watcha\\\",\\\"wavve\\\",\\\"Bixby\\\",\\\"Internet\\\",\\\"home_i_icon_app_edit.svg\\\"\",\n  \"list:btm\": [\n    \"\\\"TVING | 티빙\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"lifestyle_home_i_mode_art.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_selected.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
+]
+
+for screen in screens:
+    if "qwen" in save_dir_merged:
+        prompt = f"<|im_start|>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<|im_end|>\n<|im_start|>assistant"
+    else:
+        prompt = f"<bos><start_of_turn>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<end_of_turn>\n<start_of_turn>model"
+    command = [
+        LLAMA_CLI_BIN,
+        "-m", GGUF_MODEL_PATH,
+        "-p", prompt,
+        "--n-predict", str(MAX_TOKENS),
+        "--temp", "1.0",
+        "--top-p", "0.95",
+        "--top-k", "64"
+    ]
+
+    print("Running command:", " ".join(command))
+    #result = subprocess.run(command, capture_output=True, text=True)
+    #print(result)
+
+    print("Output:")
+    #print(result.stdout)
