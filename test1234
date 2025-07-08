@@ -1,79 +1,35 @@
-from unsloth import FastLanguageModel
-from transformers import TextStreamer
-import torch
-import json
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config import llama_cpp_path, save_dir_merged
+import subprocess
 
-# === 경로 지정 ===
-base_model_path = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"  # 사전학습모델
-lora_path = "output/lora_qwen"  # LoRA 결과 저장 폴더
+LLAMA_CLI_BIN = llama_cpp_path + "/build/bin/llama-cli"
+GGUF_MODEL_PATH = save_dir_merged + "/model.gguf"
 
+#GGUF_MODEL_PATH = "../unsloth_test/models/Qwen3-1.7B-Q8_0.gguf"
+MAX_TOKENS = 256
 
-# === 모델 로드 ===
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=lora_path,
-    max_seq_length=2048,
-    dtype=torch.float16,
-    load_in_4bit=True,
-)
-
-# === 평가 모드 전환 ===
-model.eval()
-
-# === 테스트용 입력 ===
-sample_input = {
-  "list:top": [
-    "\"리모컨 없이 호출하기\",btn:\"꺼짐\""
-  ],
-  "list:mid": [
-    "\"목소리 등록\",btn:\"등록\""
-  ]
-}
-
-# === 메시지 포맷 구성 ===
-messages = [
-    {
-        "role": "user",
-        "content": f"다음 UI 화면을 요약해줘 (한국어):\n{json.dumps(sample_input, ensure_ascii=False)}"
-    }
+screens = [
+    "{\n  \"hero:top\": \"btn:\\\"광고|더 보기\\\"\",\n  \"list:mid\": [\n    \"\\\"TVING | 티빙\\\"\",\n    \"[\\\"환상적인 여정\\\"]: btn:\\\"노 리사이클\\\",btn:\\\"브로드캐스트\\\",btn:\\\"하라키리\\\",btn:\\\"안녕하세요\\\"\"\n  ],\n  \"tabs:mid\": [\n    \"\\\"추천\\\",\\\"라이브\\\",\\\"앱스\\\"\"\n  ],\n  \"apps:btm\": \"\\\"SmartThings\\\",\\\"삼성 TV Plus\\\",\\\"Netflix\\\",\\\"Prime Video\\\",\\\"YouTube\\\",\\\"TVING | 티빙\\\",\\\"왓챠 | Watcha\\\",\\\"wavve\\\",\\\"Bixby\\\",\\\"Internet\\\",\\\"home_i_icon_app_edit.svg\\\"\",\n  \"list:btm\": [\n    \"\\\"TVING | 티빙\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"lifestyle_home_i_mode_art.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_selected.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
+    "{\n  \"list:top\": [\n    \"\\\"극세 필터 청소가 필요합니다. 필터를 청소하여 안정적인 성능을 유지해 보세요.\\\"\",\n    \"btn:\\\"자세히 보기\\\",btn:\\\"닫기\\\"\",\n    \"\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\"\",\n    \"\\\"대시보드 | 마이 홈\\\"\",\n    \"\\\"cloudy?platform=summary\\\",\\\"73 °F\\\",\\\"1?platform=summary\\\",\\\"좋음\\\"\"\n  ],\n  \"list:mid\": [\n    \"btn:\\\"내 폰 울리기\\\"\",\n    \"btn:\\\"오프라인|기기 2개\\\",btn:\\\"Home Care|알림 2개\\\",btn:\\\"default?platform=summary|Energy|15.27 kWh\\\"\",\n    \"\\\"즐겨찾기\\\"\",\n    \"btn:\\\"거실|공기청정기|자동풍\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"체험존|체험존에서 SmartThings 사용 방법을 확인해 보세요.|Addition\\\",btn:\\\"SmartThings 허브(매터 지원)|매터 표준을 지원하는 SmartThings 허브로 폭넓은 IoT 경험을 제공합니다.\\\"\",\n    \"btn:\\\"맵뷰|TV의 대화면에서 집안의 기기와 유용한 정보를 한번에 확인해 보세요\\\",btn:\\\"빅스비 음성 제어|언제든지 빅스비를 통해 집안 상태를 확인하고 기기를 제어할 수 있습니다.\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"st_main_menulogo_close.svg\\\",\\\"st_main_menuicon_home_sel.svg\\\",\\\"st_main_menuicon_devices_n.svg\\\",\\\"st_main_menuicon_life_n.svg\\\",\\\"st_main_menuicon_routine_n.svg\\\",\\\"st_main_menuicon_adddevice_n.svg\\\",\\\"[homemenu]resize_profile_skjcwbfpdc.jpg\\\",\\\"st_main_menuicon_settings_n.svg\\\"\"\n  ]\n}",
+    "{\n  \"list:top\": [\n    \"btn:\\\"환영합니다.|바로 오늘! 아트 스토어를 체험해보세요.\\\"\"\n  ],\n  \"list:mid\": [\n    \"[\\\"내 아트 스토어\\\"]: \\\"나의 사진\\\",\\\"즐겨찾기\\\",\\\"멤버십\\\"\",\n    \"\\\"최근 감상\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"1521382429sam-s10002099_20250224052915.jpg\\\"\",\n    \"\\\"TextBox\\\"\",\n    \"\\\"TextBox\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"home_i_icon_mode_art_selected.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_normal.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
 ]
 
-# === Chat 템플릿 적용 ===
-input_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+for screen in screens:
+    if "qwen" in save_dir_merged:
+        prompt = f"<|im_start|>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<|im_end|>\n<|im_start|>assistant"
+    else:
+        prompt = f"<bos><start_of_turn>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<end_of_turn>\n<start_of_turn>model"
+    command = [
+        LLAMA_CLI_BIN,
+        "-m", GGUF_MODEL_PATH,
+        "-p", prompt,
+        "--n-predict", str(MAX_TOKENS),
+        "--temp", "1.0",
+        "--top-p", "0.95",
+        "--top-k", "64"
+    ]
 
-# === 생성 ===
-inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
-with torch.no_grad():
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=128,
-        do_sample=False,
-        temperature=0.7,
-    )
+    print("Running command:", " ".join(command))
+    result = subprocess.run(command, capture_output=True, text=True)
 
-# === 출력 ===
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
-
-
-(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ python3 local_test/inference_test.py 
-🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
-🦥 Unsloth Zoo will now patch everything to make training faster!
-==((====))==  Unsloth 2025.6.12: Fast Qwen3 patching. Transformers: 4.53.0.
-   \\   /|    NVIDIA GeForce RTX 3090 Ti. Num GPUs = 1. Max memory: 23.525 GB. Platform: Linux.
-O^O/ \_/ \    Torch: 2.7.1+cu126. CUDA: 8.6. CUDA Toolkit: 12.6. Triton: 3.3.1
-\        /    Bfloat16 = TRUE. FA [Xformers = 0.0.31. FA2 = False]
- "-____-"     Free license: http://github.com/unslothai/unsloth
-Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
-Unsloth 2025.6.12 patched 28 layers with 0 QKV layers, 0 O layers and 0 MLP layers.
-The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
-Qwen3ForCausalLM has no `_prepare_4d_causal_attention_mask_with_cache_position` method defined in its base modeling class. Compiled forward passes will be sub-optimal. If you're writing code, see Llama for an example implementation. If you're a user, please report this issue on GitHub.
-user
-다음 UI 화면을 요약해줘 (한국어):
-{"list:top": ["\"리모컨 없이 호출하기\",btn:\"꺼짐\""], "list:mid": ["\"목소리 등록\",btn:\"등록\""]}
-assistant
-<think>
-Okay, let's see. The user wants me to summarize a UI screen in Korean. The input is a JSON structure with "list:top" and "list:mid". 
-
-First, I need to parse the JSON. The "list:top" has two items. The first is "리모컨 없이 호출하기" with a button "꺼짐". The second is "목소리 등록" with "btn:\"등록\"". Wait, the JSON shows the buttons as "btn:\"등록\"", but in the example, it's written as "btn:\"등록\"". Maybe the
+    print("Output:")
+    print(result.stdout)
