@@ -1,25 +1,145 @@
-#model_name = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+import json
+from pathlib import Path
+from typing import Dict, List
+import random
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-model_name = "../unsloth_test/models/Qwen3-1.7B-unsloth-bnb-4bit"
-model_name_fp16 = "../unsloth_test/models/Qwen3-1.7B"
-max_seq_length = 2048
-save_dir_lora = "output/lora_qwen"
-save_dir_lora_full = "output/lora_full_qwen"
-save_dir_merged = "output/merged_qwen"
-llama_cpp_path = "/home/youngsun/test/llama.cpp"
+import llm_utils
 
-# model_name = "../unsloth_test/models/gemma-3-1b-it-bnb-4bit"
-# model_name_fp16 = "../unsloth_test/models/gemma-3-1b-it"
-# max_seq_length = 2048
-# save_dir_lora = "output/lora"
-# save_dir_lora_full = "output/lora_full"
-# save_dir_merged = "output/merged"
-# llama_cpp_path = "/home/youngsun/test/llama.cpp"
+RICO_PATH = "sample_data/full_summaries.jsonl"
+TV_PATH = "sample_data/screen_results_deduped.jsonl"
+SYNTHETIC_PATH = "sample_data/synthetic_tv_data_kr.jsonl"
+OUT_PATH = "sample_data/merged_training_dataset.jsonl"
+OUT_FIXED_PATH = "merged_training_dataset_fixed.jsonl"
 
-# model_name = "../unsloth_test/models/gemma-3-4b-it-bnb-4bit"
-# model_name_fp16 = "../unsloth_test/models/gemma-3-4b-it"
-# max_seq_length = 2048
-# save_dir_lora = "output/lora"
-# save_dir_lora_full = "output/lora_full"
-# save_dir_merged = "output/merged"
-# llama_cpp_path = "/home/youngsun/test/llama.cpp"
+def load_jsonl(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return [json.loads(line.strip()) for line in f if line.strip()]
+
+def save_jsonl(data, path):
+    with open(path, "w", encoding="utf-8") as f:
+        for item in data:
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+def oversample(data: List[Dict], target_count: int) -> List[Dict]:
+    if len(data) >= target_count:
+        return random.sample(data, target_count)
+
+    multiplier = target_count // len(data)
+    remainder = target_count % len(data)
+    return data * multiplier + random.sample(data, remainder)
+
+def fix_input_field(item):
+    raw = item.get("input")
+    if isinstance(raw, str):
+        try:
+            item["input"] = json.loads(raw)
+        except json.JSONDecodeError:
+            print(f"Failed to parse JSON from input field: {raw}")
+    return item
+
+shared_limiter = llm_utils.RateLimiter(max_calls=20, per_seconds=61)
+
+def generated_short_summary_from_llm(tree: dict, full_summary: str) -> str:
+    prompt = (
+        "You are an expert UI summarization assistant.\n\n"
+        "Given the following TV screen structure and its detailed summary, "
+        "generate a short Korean phrase that describes the main purpose or function of the screen.\n\n"
+        "Guidelines:\n"
+        "- The ouput must be a **Korean phrase**, not a full sentence.\n"
+        "- Do NOT include verbs or ending sentence particles(e.g., '페이지가 표시됩니다.' -> X).\n"
+        "- Do Not include general assumptions or impressions.\n"
+        "- Do Not include quotes or special characters.\n"
+        "- Focus only on what is clearly visible on the screen.\n"
+        "- Good examples:\n"
+        "   - '프로필 설정 페이지'\n"
+        "   - 'TV 홈 화면'\n"
+        "   - '앱 목록'\n"
+        "   - '설정 페이지'\n\n"
+        f"UI Structure (JSON):\n{json.dumps(tree, ensure_ascii=False)}\n\n"
+        f"Full Summary:\n{full_summary}\n\n"
+        "Output (Korean phrase only):"
+    )
+    return llm_utils.request_llm(prompt)
+
+def merged_training_dataset():
+    rico_data = load_jsonl(RICO_PATH)
+    rico_data_standardized = []
+    for item in rico_data:
+        rico_data_standardized.append({
+            "input": item["input"],
+            "short": item["short_summary"],
+            "full": item["full_summary"],
+            "source": "rico"
+        })
+
+    tv_data = load_jsonl(TV_PATH)
+    tv_data_standardized = []
+    for i, item in enumerate(tv_data):
+        full = item.get("summary", "").strip()
+        tree = item.get("raw_tree", {})
+        
+        if not full or not tree:
+            continue
+
+        # #suggested = generated_short_summary_from_llm(tree, full)
+        # suggested = llm_utils.llm_request_with_rate_limit(
+        #     generated_short_summary_from_llm,
+        #     tree, full,
+        #     rate_limiter=shared_limiter)
+        # #short = suggested
+
+        # print(f"\n [{i+1}/{len(tv_data)}] Full summary:\n{full}")
+        # print(f" UI Tree (truncated): {str(tree)[:100]}...")
+        # print(f" Suggested short summary: {suggested}")
+        # answer = input(">>> Accept? (y = yes, or enter your own): ").strip()
+
+        # if answer == "y":
+        #     short = suggested
+        # else:
+        #     short = answer
+
+        tv_data_standardized.append({
+            "input": tree,
+            "short": "",
+            "full": full,
+            "source": "tv"
+        })
+
+    synthetic_data = load_jsonl(SYNTHETIC_PATH)
+    synthetic_data_standardized = []
+    for item in synthetic_data:
+        full = item.get("output", "")
+        if not full:
+            continue
+        synthetic_data_standardized.append({
+            "input": item["input"],
+            "short": "",
+            "full": full,
+            "source": "synthetic"
+        })
+
+    tv_count = 0 #len(tv_data_standardized)
+    synthetic_count = len(synthetic_data_standardized)
+    rico_count = 0
+
+    tv_final = oversample(tv_data_standardized, tv_count)
+    synthetic_final = oversample(synthetic_data_standardized, synthetic_count)
+    rico_final = oversample(rico_data_standardized, rico_count)
+
+    merged = tv_final + synthetic_final + rico_final
+    random.shuffle(merged)
+
+    save_jsonl(merged, OUT_PATH)
+    print(f"Saved {len(merged)} items to {OUT_PATH}")
+
+def fix_merged_dataset():
+    data = load_jsonl(OUT_PATH)
+    fixed = [fix_input_field(item) for item in data]
+    save_jsonl(fixed, OUT_FIXED_PATH)
+
+if __name__ == "__main__":
+    merged_training_dataset()
+    #fix_merged_dataset()
