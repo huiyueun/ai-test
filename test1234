@@ -1,35 +1,28 @@
-from config import llama_cpp_path, save_dir_merged
-import subprocess
-
-LLAMA_CLI_BIN = llama_cpp_path + "/build/bin/llama-cli"
-GGUF_MODEL_PATH = save_dir_merged + "/model.gguf"
-
-#GGUF_MODEL_PATH = "../unsloth_test/models/Qwen3-1.7B-Q8_0.gguf"
-MAX_TOKENS = 256
-
-screens = [
-    "{\n  \"hero:top\": \"btn:\\\"광고|더 보기\\\"\",\n  \"list:mid\": [\n    \"\\\"TVING | 티빙\\\"\",\n    \"[\\\"환상적인 여정\\\"]: btn:\\\"노 리사이클\\\",btn:\\\"브로드캐스트\\\",btn:\\\"하라키리\\\",btn:\\\"안녕하세요\\\"\"\n  ],\n  \"tabs:mid\": [\n    \"\\\"추천\\\",\\\"라이브\\\",\\\"앱스\\\"\"\n  ],\n  \"apps:btm\": \"\\\"SmartThings\\\",\\\"삼성 TV Plus\\\",\\\"Netflix\\\",\\\"Prime Video\\\",\\\"YouTube\\\",\\\"TVING | 티빙\\\",\\\"왓챠 | Watcha\\\",\\\"wavve\\\",\\\"Bixby\\\",\\\"Internet\\\",\\\"home_i_icon_app_edit.svg\\\"\",\n  \"list:btm\": [\n    \"\\\"TVING | 티빙\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"lifestyle_home_i_mode_art.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_selected.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
-    "{\n  \"list:top\": [\n    \"\\\"극세 필터 청소가 필요합니다. 필터를 청소하여 안정적인 성능을 유지해 보세요.\\\"\",\n    \"btn:\\\"자세히 보기\\\",btn:\\\"닫기\\\"\",\n    \"\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\"\",\n    \"\\\"대시보드 | 마이 홈\\\"\",\n    \"\\\"cloudy?platform=summary\\\",\\\"73 °F\\\",\\\"1?platform=summary\\\",\\\"좋음\\\"\"\n  ],\n  \"list:mid\": [\n    \"btn:\\\"내 폰 울리기\\\"\",\n    \"btn:\\\"오프라인|기기 2개\\\",btn:\\\"Home Care|알림 2개\\\",btn:\\\"default?platform=summary|Energy|15.27 kWh\\\"\",\n    \"\\\"즐겨찾기\\\"\",\n    \"btn:\\\"거실|공기청정기|자동풍\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"체험존|체험존에서 SmartThings 사용 방법을 확인해 보세요.|Addition\\\",btn:\\\"SmartThings 허브(매터 지원)|매터 표준을 지원하는 SmartThings 허브로 폭넓은 IoT 경험을 제공합니다.\\\"\",\n    \"btn:\\\"맵뷰|TV의 대화면에서 집안의 기기와 유용한 정보를 한번에 확인해 보세요\\\",btn:\\\"빅스비 음성 제어|언제든지 빅스비를 통해 집안 상태를 확인하고 기기를 제어할 수 있습니다.\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"st_main_menulogo_close.svg\\\",\\\"st_main_menuicon_home_sel.svg\\\",\\\"st_main_menuicon_devices_n.svg\\\",\\\"st_main_menuicon_life_n.svg\\\",\\\"st_main_menuicon_routine_n.svg\\\",\\\"st_main_menuicon_adddevice_n.svg\\\",\\\"[homemenu]resize_profile_skjcwbfpdc.jpg\\\",\\\"st_main_menuicon_settings_n.svg\\\"\"\n  ]\n}",
-    "{\n  \"list:top\": [\n    \"btn:\\\"환영합니다.|바로 오늘! 아트 스토어를 체험해보세요.\\\"\"\n  ],\n  \"list:mid\": [\n    \"[\\\"내 아트 스토어\\\"]: \\\"나의 사진\\\",\\\"즐겨찾기\\\",\\\"멤버십\\\"\",\n    \"\\\"최근 감상\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"1521382429sam-s10002099_20250224052915.jpg\\\"\",\n    \"\\\"TextBox\\\"\",\n    \"\\\"TextBox\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"home_i_icon_mode_art_selected.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_normal.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
-]
-
-for screen in screens:
-    if "qwen" in save_dir_merged:
-        prompt = f"<|im_start|>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<|im_end|>\n<|im_start|>assistant"
-    else:
-        prompt = f"<bos><start_of_turn>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<end_of_turn>\n<start_of_turn>model"
-    command = [
-        LLAMA_CLI_BIN,
-        "-m", GGUF_MODEL_PATH,
-        "-p", prompt,
-        "--n-predict", str(MAX_TOKENS),
-        "--temp", "1.0",
-        "--top-p", "0.95",
-        "--top-k", "64"
-    ]
-
-    print("Running command:", " ".join(command))
-    result = subprocess.run(command, capture_output=True, text=True)
-
-    print("Output:")
-    print(result.stdout)
+(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ python /home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py output/merged_qwen --outfile output/merged_qwen/model.gguf --outtype q8_0
+INFO:hf-to-gguf:Loading model: merged_qwen
+INFO:hf-to-gguf:Model architecture: Qwen3ForCausalLM
+INFO:gguf.gguf_writer:gguf: This GGUF file is for Little Endian only
+INFO:hf-to-gguf:Exporting model...
+INFO:hf-to-gguf:gguf: loading model part 'model.safetensors'
+INFO:hf-to-gguf:token_embd.weight,         torch.float16 --> Q8_0, shape = {2048, 151936}
+INFO:hf-to-gguf:blk.0.attn_norm.weight,    torch.float16 --> F32, shape = {2048}
+WARNING:hf-to-gguf:Can't quantize tensor with shape (6291456, 1) to Q8_0, falling back to F16
+INFO:hf-to-gguf:blk.0.ffn_down.weight,     torch.uint8 --> F16, shape = {1, 6291456}
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 6825, in <module>
+    main()
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 6819, in main
+    model_instance.write()
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 409, in write
+    self.prepare_tensors()
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 277, in prepare_tensors
+    for new_name, data_torch in (self.modify_tensors(data_torch, name, bid)):
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 2743, in modify_tensors
+    yield from super().modify_tensors(data_torch, name, bid)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 245, in modify_tensors
+    return [(self.map_tensor_name(name), data_torch)]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/Workspace/AIAssistant/llama.cpp-master/convert_hf_to_gguf.py", line 236, in map_tensor_name
+    raise ValueError(f"Can not map tensor {name!r}")
+ValueError: Can not map tensor 'model.layers.0.mlp.down_proj.weight.absmax'
