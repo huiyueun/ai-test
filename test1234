@@ -1,60 +1,12 @@
-from unsloth import FastLanguageModel
-from transformers import TextStreamer
-import torch
-import json
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-# === 경로 지정 ===
-base_model_path = "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"  # 사전학습모델
-lora_path = "output/lora_qwen"  # LoRA 결과 저장 폴더
-
-
-# === 모델 로드 ===
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=base_model_path,
-    max_seq_length=2048,
-    dtype=torch.float16,
-    load_in_4bit=True,
-)
-
-# === LoRA 적용 ===
-model = FastLanguageModel.load_peft_model(model, lora_path)
-
-# === 평가 모드 전환 ===
-model.eval()
-
-# === 테스트용 입력 ===
-sample_input = {
-  "list:top": [
-    "\"리모컨 없이 호출하기\",btn:\"꺼짐\""
-  ],
-  "list:mid": [
-    "\"목소리 등록\",btn:\"등록\""
-  ]
-}
-
-# === 메시지 포맷 구성 ===
-messages = [
-    {
-        "role": "user",
-        "content": f"다음 UI 화면을 요약해줘 (한국어):\n{json.dumps(sample_input, ensure_ascii=False)}"
-    }
-]
-
-# === Chat 템플릿 적용 ===
-input_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-
-# === 생성 ===
-inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
-with torch.no_grad():
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=128,
-        do_sample=False,
-        temperature=0.7,
-    )
-
-# === 출력 ===
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+Unsloth: Dropout = 0 is supported for fast patching. You are using dropout = 0.05.
+Unsloth will patch all other layers, except LoRA matrices, causing a performance hit.
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/local_test/inference_test.py", line 23, in <module>
+    model = FastLanguageModel.get_peft_model(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/unsloth/models/llama.py", line 2493, in get_peft_model
+    lora_config = LoraConfig(**arguments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: LoraConfig.__init__() got an unexpected keyword argument 'lora_path'
