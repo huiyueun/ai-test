@@ -1,10 +1,4 @@
-(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ sudo apt install build-essential libgomp1
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-build-essential is already the newest version (12.9ubuntu3).
-libgomp1 is already the newest version (12.3.0-1ubuntu1~22.04).
-The following packages were automatically installed and are no longer required:
-  libwpe-1.0-1 libwpebackend-fdo-1.0-1
-Use 'sudo apt autoremove' to remove them.
-0 upgraded, 0 newly installed, 0 to remove and 23 not upgraded.
+CXX=/usr/bin/g++ \
+CC=/usr/bin/gcc \
+CMAKE_ARGS="-DLLAMA_CUBLAS=off -DLLAMA_BLAS=on -DLLAMA_OPENBLAS=on -DLLAMA_BUILD_EXAMPLES=off" \
+pip install llama-cpp-python --force-reinstall --no-binary :all:
