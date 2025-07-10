@@ -1,13 +1,10 @@
-      [84/84] : && /usr/bin/g++  -pthread -B /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat -O3 -DNDEBUG  vendor/llama.cpp/tools/mtmd/CMakeFiles/llama-mtmd-cli.dir/mtmd-cli.cpp.o -o vendor/llama.cpp/tools/mtmd/llama-mtmd-cli  -Wl,-rpath,/tmp/tmp6gru_vy6/build/vendor/llama.cpp/tools/mtmd:/tmp/tmp6gru_vy6/build/bin:  vendor/llama.cpp/common/libcommon.a  vendor/llama.cpp/tools/mtmd/libmtmd.so  bin/libllama.so  bin/libggml.so  bin/libggml-cpu.so  bin/libggml-base.so && :
-      FAILED: vendor/llama.cpp/tools/mtmd/llama-mtmd-cli
-      : && /usr/bin/g++  -pthread -B /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat -O3 -DNDEBUG  vendor/llama.cpp/tools/mtmd/CMakeFiles/llama-mtmd-cli.dir/mtmd-cli.cpp.o -o vendor/llama.cpp/tools/mtmd/llama-mtmd-cli  -Wl,-rpath,/tmp/tmp6gru_vy6/build/vendor/llama.cpp/tools/mtmd:/tmp/tmp6gru_vy6/build/bin:  vendor/llama.cpp/common/libcommon.a  vendor/llama.cpp/tools/mtmd/libmtmd.so  bin/libllama.so  bin/libggml.so  bin/libggml-cpu.so  bin/libggml-base.so && :
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: warning: libgomp.so.1, needed by bin/libggml-cpu.so, not found (try using -rpath or -rpath-link)
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: bin/libggml-cpu.so: undefined reference to `GOMP_barrier@GOMP_1.0'
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: bin/libggml-cpu.so: undefined reference to `GOMP_parallel@GOMP_4.0'
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: bin/libggml-cpu.so: undefined reference to `omp_get_thread_num@OMP_1.0'
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: bin/libggml-cpu.so: undefined reference to `GOMP_single_start@GOMP_1.0'
-      /home/huiyu/miniconda3/envs/unsloth_env/compiler_compat/ld: bin/libggml-cpu.so: undefined reference to `omp_get_num_threads@OMP_1.0'
-      collect2: error: ld returned 1 exit status
-      ninja: build stopped: subcommand failed.
-      
-      *** CMake build failed
+(unsloth_env) huiyu@huiyu-linux2:~/Workspace/AIAssistant/AIAssistantTraining$ sudo apt install build-essential libgomp1
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+build-essential is already the newest version (12.9ubuntu3).
+libgomp1 is already the newest version (12.3.0-1ubuntu1~22.04).
+The following packages were automatically installed and are no longer required:
+  libwpe-1.0-1 libwpebackend-fdo-1.0-1
+Use 'sudo apt autoremove' to remove them.
+0 upgraded, 0 newly installed, 0 to remove and 23 not upgraded.
