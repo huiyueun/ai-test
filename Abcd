@@ -1,67 +1,58 @@
 import gradio as gr
-import subprocess
+from llama_cpp import Llama
 import os
 import sys
 
-# 경로 설정
+# --- 설정값 불러오기 ---
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from config import llama_cpp_path, save_dir_merged
+from config import save_dir_merged
 
-LLAMA_CLI_BIN = llama_cpp_path + "/build/bin/llama-cli"
-GGUF_MODEL_PATH = save_dir_merged + "/model.gguf"
+GGUF_MODEL_PATH = os.path.join(save_dir_merged, "model.gguf")
 MAX_TOKENS = 256
 
-# llama-cli 실행 함수
-def generate_summary(screen_json):
+# --- 모델 로드 ---
+print("🔄 모델 로딩 중...")
+llm = Llama(
+    model_path=GGUF_MODEL_PATH,
+    n_ctx=2048,
+    n_threads=8,         # CPU 스레드 수
+    n_batch=256,
+    n_gpu_layers=20      # GPU 사용시 적절히 조정 (없으면 0)
+)
+print("✅ 모델 로딩 완료")
+
+# --- 요약 생성 함수 ---
+def generate_summary(screen_json: str) -> str:
     if not screen_json.strip():
-        return "입력값이 비어 있습니다."
+        return "❗ JSON 입력이 비어있습니다."
 
     if "qwen" in save_dir_merged:
-        prompt = f"<|im_start|>user\nGenerate a summary for the following screen in Korean:\n{screen_json}\n<|im_end|>\n<|im_start|>assistant"
+        prompt = f"<|im_start|>user\n다음 화면을 한국어로 요약해줘:\n{screen_json}\n<|im_end|>\n<|im_start|>assistant"
     else:
-        prompt = f"<bos><start_of_turn>user\nGenerate a summary for the following screen in Korean:\n{screen_json}\n<end_of_turn>\n<start_of_turn>model"
+        prompt = f"<bos><start_of_turn>user\n다음 화면을 한국어로 요약해줘:\n{screen_json}\n<end_of_turn>\n<start_of_turn>model"
 
-    command = [
-        LLAMA_CLI_BIN,
-        "-m", GGUF_MODEL_PATH,
-        "-p", prompt,
-        "--n-predict", str(MAX_TOKENS),
-        "--temp", "1.0",
-        "--top-p", "0.95",
-        "--top-k", "64"
-    ]
+    response = llm(
+        prompt,
+        max_tokens=MAX_TOKENS,
+        temperature=1.0,
+        top_p=0.95,
+        top_k=64,
+        stop=["<|im_end|>", "<end_of_turn>"]
+    )
+    return response["choices"][0]["text"].strip()
 
-    try:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
-
-        result_lines = []
-        for line in process.stdout:
-            result_lines.append(line.strip())
-
-        process.wait()
-        return "\n".join(result_lines)
-
-    except Exception as e:
-        return f"에러 발생: {str(e)}"
-
-# Gradio UI 설정
+# --- Gradio UI ---
 with gr.Blocks() as demo:
-    gr.Markdown("# 🧠 LLaMA GGUF 요약기\nJSON 화면 구조를 넣고 요약 결과를 확인하세요.")
+    gr.Markdown("# 🧠 LLaMA GGUF 요약기")
+    gr.Markdown("입력된 UI 화면 구조(JSON)를 한국어로 요약합니다.")
 
     with gr.Row():
-        input_json = gr.Textbox(lines=20, label="📥 화면 JSON 입력")
-        output_text = gr.Textbox(lines=20, label="📤 요약 결과")
+        input_json = gr.Textbox(label="📥 화면 JSON 입력", lines=20, placeholder="여기에 JSON을 붙여넣으세요")
+        output_text = gr.Textbox(label="📤 요약 결과", lines=20)
 
-    run_button = gr.Button("요약 실행")
-
+    run_button = gr.Button("📝 요약 실행")
     run_button.click(fn=generate_summary, inputs=input_json, outputs=output_text)
 
-# 앱 실행
+# 실행
 if __name__ == "__main__":
     demo.launch()
