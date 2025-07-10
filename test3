@@ -18,28 +18,11 @@ MAX_TOKENS = 256
 llm = Llama(model_path=GGUF_MODEL_PATH, n_ctx=2048, n_threads=8)
 
 # 미리 정의된 스크린 예제
+
 screens = [
-    # 사용자 제공한 JSON 예시 3개를 여기에 그대로 삽입
-    # 생략 가능 — 실제 사용 시는 그대로 복사
-    # 예시:
-    """{
-      "hero:top": "btn:\"광고|더 보기\"",
-      "list:mid": [
-        "\"TVING | 티빙\"",
-        "[\"환상적인 여정\"]: btn:\"노 리사이클\",btn:\"브로드캐스트\",btn:\"하라키리\",btn:\"안녕하세요\""
-      ],
-      "tabs:mid": [
-        "\"추천\",\"라이브\",\"앱스\""
-      ],
-      "apps:btm": "\"SmartThings\",\"삼성 TV Plus\",\"Netflix\",\"Prime Video\",\"YouTube\",\"TVING | 티빙\",\"왓챠 | Watcha\",\"wavve\",\"Bixby\",\"Internet\",\"home_i_icon_app_edit.svg\"",
-      "list:btm": [
-        "\"TVING | 티빙\""
-      ],
-      "tb:left": [
-        "\"home_i_icon_mode_search.svg\",\"lifestyle_home_i_mode_art.svg\",\"home_i_icon_mode_lifeplus_normal.svg\",\"home_i_icon_mode_game_normal.svg\",\"home_i_icon_mode_home_selected.svg\",\"home_i_icon_system_settings.svg\",\"home_i_icon_system_privacy_24.svg\""
-      ]
-    }""",
-    # 나머지 2개도 그대로 이어 붙이기
+    "{\n  \"hero:top\": \"btn:\\\"광고|더 보기\\\"\",\n  \"list:mid\": [\n    \"\\\"TVING | 티빙\\\"\",\n    \"[\\\"환상적인 여정\\\"]: btn:\\\"노 리사이클\\\",btn:\\\"브로드캐스트\\\",btn:\\\"하라키리\\\",btn:\\\"안녕하세요\\\"\"\n  ],\n  \"tabs:mid\": [\n    \"\\\"추천\\\",\\\"라이브\\\",\\\"앱스\\\"\"\n  ],\n  \"apps:btm\": \"\\\"SmartThings\\\",\\\"삼성 TV Plus\\\",\\\"Netflix\\\",\\\"Prime Video\\\",\\\"YouTube\\\",\\\"TVING | 티빙\\\",\\\"왓챠 | Watcha\\\",\\\"wavve\\\",\\\"Bixby\\\",\\\"Internet\\\",\\\"home_i_icon_app_edit.svg\\\"\",\n  \"list:btm\": [\n    \"\\\"TVING | 티빙\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"lifestyle_home_i_mode_art.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_selected.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
+    "{\n  \"list:top\": [\n    \"\\\"극세 필터 청소가 필요합니다. 필터를 청소하여 안정적인 성능을 유지해 보세요.\\\"\",\n    \"btn:\\\"자세히 보기\\\",btn:\\\"닫기\\\"\",\n    \"\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\",\\\"i_img_pagination_nf.json\\\"\",\n    \"\\\"대시보드 | 마이 홈\\\"\",\n    \"\\\"cloudy?platform=summary\\\",\\\"73 °F\\\",\\\"1?platform=summary\\\",\\\"좋음\\\"\"\n  ],\n  \"list:mid\": [\n    \"btn:\\\"내 폰 울리기\\\"\",\n    \"btn:\\\"오프라인|기기 2개\\\",btn:\\\"Home Care|알림 2개\\\",btn:\\\"default?platform=summary|Energy|15.27 kWh\\\"\",\n    \"\\\"즐겨찾기\\\"\",\n    \"btn:\\\"거실|공기청정기|자동풍\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"체험존|체험존에서 SmartThings 사용 방법을 확인해 보세요.|Addition\\\",btn:\\\"SmartThings 허브(매터 지원)|매터 표준을 지원하는 SmartThings 허브로 폭넓은 IoT 경험을 제공합니다.\\\"\",\n    \"btn:\\\"맵뷰|TV의 대화면에서 집안의 기기와 유용한 정보를 한번에 확인해 보세요\\\",btn:\\\"빅스비 음성 제어|언제든지 빅스비를 통해 집안 상태를 확인하고 기기를 제어할 수 있습니다.\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"st_main_menulogo_close.svg\\\",\\\"st_main_menuicon_home_sel.svg\\\",\\\"st_main_menuicon_devices_n.svg\\\",\\\"st_main_menuicon_life_n.svg\\\",\\\"st_main_menuicon_routine_n.svg\\\",\\\"st_main_menuicon_adddevice_n.svg\\\",\\\"[homemenu]resize_profile_skjcwbfpdc.jpg\\\",\\\"st_main_menuicon_settings_n.svg\\\"\"\n  ]\n}",
+    "{\n  \"list:top\": [\n    \"btn:\\\"환영합니다.|바로 오늘! 아트 스토어를 체험해보세요.\\\"\"\n  ],\n  \"list:mid\": [\n    \"[\\\"내 아트 스토어\\\"]: \\\"나의 사진\\\",\\\"즐겨찾기\\\",\\\"멤버십\\\"\",\n    \"\\\"최근 감상\\\"\"\n  ],\n  \"list:btm\": [\n    \"btn:\\\"1521382429sam-s10002099_20250224052915.jpg\\\"\",\n    \"\\\"TextBox\\\"\",\n    \"\\\"TextBox\\\"\"\n  ],\n  \"tb:left\": [\n    \"\\\"home_i_icon_mode_search.svg\\\",\\\"home_i_icon_mode_art_selected.svg\\\",\\\"home_i_icon_mode_lifeplus_normal.svg\\\",\\\"home_i_icon_mode_game_normal.svg\\\",\\\"home_i_icon_mode_home_normal.svg\\\",\\\"home_i_icon_system_settings.svg\\\",\\\"home_i_icon_system_privacy_24.svg\\\"\"\n  ]\n}",
 ]
 
 # llama 요약 호출 함수
@@ -65,9 +48,9 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         mode = gr.Radio(
-            ["예시에서 선택", "랜덤 생성"],
+            ["랜덤 생성", "예시에서 선택"],
             label="입력 방식",
-            value="예시에서 선택"
+            value="랜덤 생성"
         )
         use_korean = gr.Checkbox(label="한국어 랜덤 생성", value=True)
 
@@ -80,6 +63,7 @@ with gr.Blocks() as demo:
         visible=True
     )
 
+    generate_button = gr.Button("📥 인풋 생성하기")
     input_json = gr.Textbox(label="📥 사용될 인풋", lines=15)
 
     screen_index.change(
@@ -88,7 +72,6 @@ with gr.Blocks() as demo:
         outputs=input_json
     )
 
-    generate_button = gr.Button("📥 인풋 생성하기")
     generate_button.click(
         fn=handle_input,
         inputs=[mode, screen_index, use_korean],
