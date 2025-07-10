@@ -1,8 +1,9 @@
-Could not create share link. Missing file: /home/huiyu/.cache/huggingface/gradio/frpc/frpc_linux_amd64_v0.3. 
-
-Please check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: 
-
-1. Download this file: https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_amd64
-2. Rename the downloaded file to: frpc_linux_amd64_v0.3
-3. Move the file to this location: /home/huiyu/.cache/huggingface/gradio/frpc
-
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/AIAssistantTraining/local_test/gradio_llm.py", line 58, in <module>
+    demo.launch(server_name="0.0.0.0", server_port=7860, auth=("admin", "1234"))
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/gradio/blocks.py", line 2739, in launch
+    ) = http_server.start_server(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/huiyu/miniconda3/envs/unsloth_env/lib/python3.11/site-packages/gradio/http_server.py", line 156, in start_server
+    raise OSError(
+OSError: Cannot find empty port in range: 7860-7860. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`.
