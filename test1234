@@ -1,36 +1,15 @@
-for idx, screen in enumerate(screens):
-    if "qwen" in save_dir_merged.lower():
-        prompt = f"<|im_start|>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<|im_end|>\n<|im_start|>assistant"
-    else:
-        prompt = f"<bos><start_of_turn>user\nGenerate a summary for the following screen in Korean:\n{screen}\n<end_of_turn>\n<start_of_turn>model"
+import gradio as gr
 
-    command = [
-        LLAMA_CLI_BIN,
-        "-m", GGUF_MODEL_PATH,
-        "-p", prompt,
-        "--n-predict", str(MAX_TOKENS),
-        "--temp", "1.0",
-        "--top-p", "0.95",
-        "--top-k", "64"
-    ]
+def user_greeting(name) :
+    return "Hello!" + name + ", Welcome! First Gradio Application"
 
-    print(f"\n=== [Screen {idx+1}] Running command ===")
-    print(" ".join(command))
+app = gr.Interface(fn=user_greeting, inputs="text", outputs="text")
+app.launch()
 
-    try:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
-
-        output, _ = process.communicate(timeout=90)
-        print(f"[Screen {idx+1} Output]\n{output}")
-
-    except subprocess.TimeoutExpired:
-        process.kill()
-        print(f"[Screen {idx+1}] Timeout occurred.")
-
-    except Exception as e:
-        print(f"[Screen {idx+1}] Error: {e}")
+Traceback (most recent call last):
+  File "/home/huiyu/Workspace/AIAssistant/gratio_test/gradio.py", line 1, in <module>
+    import gradio as gr
+  File "/home/huiyu/Workspace/AIAssistant/gratio_test/gradio.py", line 6, in <module>
+    app = gr.Interface(fn=user_greeting, inputs="text", outputs="text")
+          ^^^^^^^^^^^^
+AttributeError: partially initialized module 'gradio' has no attribute 'Interface' (most likely due to a circular import)
