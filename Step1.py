@@ -1,15 +1,28 @@
-(unsloth_env) huiyu@huiyu-linux2:~/Workspace/test-1$ pip install huggingface_hub
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: huggingface_hub in /home/huiyu/.local/lib/python3.10/site-packages (0.33.1)
-Requirement already satisfied: filelock in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (3.18.0)
-Requirement already satisfied: packaging>=20.9 in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (25.0)
-Requirement already satisfied: hf-xet<2.0.0,>=1.1.2 in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (1.1.5)
-Requirement already satisfied: typing-extensions>=3.7.4.3 in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (4.14.0)
-Requirement already satisfied: tqdm>=4.42.1 in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (4.67.1)
-Requirement already satisfied: requests in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (2.32.4)
-Requirement already satisfied: fsspec>=2023.5.0 in /home/huiyu/.local/lib/python3.10/site-packages (from huggingface_hub) (2025.3.0)
-Requirement already satisfied: pyyaml>=5.1 in /usr/lib/python3/dist-packages (from huggingface_hub) (5.4.1)
-Requirement already satisfied: idna<4,>=2.5 in /usr/lib/python3/dist-packages (from requests->huggingface_hub) (3.3)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/lib/python3/dist-packages (from requests->huggingface_hub) (1.26.5)
-Requirement already satisfied: certifi>=2017.4.17 in /usr/lib/python3/dist-packages (from requests->huggingface_hub) (2020.6.20)
-Requirement already satisfied: charset_normalizer<4,>=2 in /home/huiyu/.local/lib/python3.10/site-packages (from requests->huggingface_hub) (3.4.2)
+std::vector<Accessibility::Relation> GetAccessibilityRelations(Toolkit::Control control)
+{
+  const auto& relationMap = GetControlImplementation(control).mAccessibilityProps.relations;
+  std::vector<Accessibility::Relation> result;
+
+  for(const auto& relation : relationMap)
+  {
+    Accessibility::Relation newRelation(relation.first, {});
+
+    for(const auto& weakActor : relation.second)
+    {
+      if(auto actor = weakActor.GetHandle())
+      {
+        if(auto accessible = Accessibility::Accessible::Get(actor))
+        {
+          newRelation.mTargets.push_back(accessible);
+        }
+      }
+    }
+
+    if(!newRelation.mTargets.empty())
+    {
+      result.emplace_back(std::move(newRelation));
+    }
+  }
+
+  return result;
+}
