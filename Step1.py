@@ -1,24 +1,30 @@
 std::vector<Accessibility::Relation> GetAccessibilityRelations(Toolkit::Control control)
 {
-  const auto& relationMap = GetControlImplementation(control).mAccessibilityProps.relations;
+  auto& relationMap = GetControlImplementation(control).mAccessibilityProps.relations;
   std::vector<Accessibility::Relation> result;
 
-  for(const auto& relation : relationMap)
+  for (auto& [relationType, targets] : relationMap)
   {
-    Accessibility::Relation newRelation(relation.first, {});
+    Accessibility::Relation newRelation(relationType, {});
 
-    for(const auto& weakActor : relation.second)
+    for (const auto& weakActor : targets)
     {
-      if(auto actor = weakActor.GetHandle())
+      if (auto actor = weakActor.GetHandle())
       {
-        if(auto accessible = Accessibility::Accessible::Get(actor))
+        if (auto accessible = Accessibility::Accessible::Get(actor))
         {
           newRelation.mTargets.push_back(accessible);
         }
       }
     }
 
-    if(!newRelation.mTargets.empty())
+    // 무효한 weak handle 제거
+    std::erase_if(targets, [](const auto& weakActor) {
+      auto actor = weakActor.GetHandle();
+      return !actor || !Accessibility::Accessible::Get(actor);
+    });
+
+    if (!newRelation.mTargets.empty())
     {
       result.emplace_back(std::move(newRelation));
     }
