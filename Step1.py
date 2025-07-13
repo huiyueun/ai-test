@@ -3,8 +3,11 @@ std::vector<Accessibility::Relation> GetAccessibilityRelations(Toolkit::Control 
   auto& relationMap = GetControlImplementation(control).mAccessibilityProps.relations;
   std::vector<Accessibility::Relation> result;
 
-  for (auto& [relationType, targets] : relationMap)
+  for (auto& relationPair : relationMap)
   {
+    auto& relationType = relationPair.first;
+    auto& targets = relationPair.second;
+
     Accessibility::Relation newRelation(relationType, {});
 
     for (const auto& weakActor : targets)
@@ -18,11 +21,19 @@ std::vector<Accessibility::Relation> GetAccessibilityRelations(Toolkit::Control 
       }
     }
 
-    // 무효한 weak handle 제거
-    std::erase_if(targets, [](const auto& weakActor) {
-      auto actor = weakActor.GetHandle();
-      return !actor || !Accessibility::Accessible::Get(actor);
-    });
+    // C++17에서는 std::erase_if가 없으므로 반복문으로 제거
+    for (auto it = targets.begin(); it != targets.end(); )
+    {
+      auto actor = it->GetHandle();
+      if (!actor || !Accessibility::Accessible::Get(actor))
+      {
+        it = targets.erase(it);  // 무효한 weak handle 제거
+      }
+      else
+      {
+        ++it;
+      }
+    }
 
     if (!newRelation.mTargets.empty())
     {
