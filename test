@@ -1,384 +1,147 @@
-import os
 import json
 import random
-import re
-import pandas as pd
+import zipfile
+from pathlib import Path
+import copy
+import openai
+import time
+import os
+
 import llm_utils
-from tqdm import tqdm
 
-# -- Load Rico View Hierarchies ---
+# Sample data pools for English and Korean UI elements
+hero_titles = ["Stranger Things", "Breaking Bad", "The Crown", "Top Gun: Maverick", "Live News Stream"]
+hero_titles_ko = ["더 글로리", "오징어 게임", "기생충", "이상한 변호사 우영우", "라이브 뉴스 스트림"]
 
-def extract_text_nodes(node, depth=0):
-    results = []
-    if isinstance(node, dict):
-        if 'text' in node and node['text']:
-            results.append({
-                "text": node['text'],
-                "class": node.get('class', ''),
-                "depth": depth
-            })
-        for child in node.get('children', []):
-            results.extend(extract_text_nodes(child, depth + 1))
-    return results
+buttons = [["Play", "More Info"], ["Watch", "Details"], ["Install"], ["Preview", "Add to List"]]
 
-def convert_to_custom_format(view_hierarchy: dict) -> dict:
-    def leaves(node):
-        if not isinstance(node, dict):
-            return
-        if node.get("children"):
-            for c in node["children"]:
-                yield from leaves(c)
+tabs_pool = [
+    ["Live", "Apps", "For You"],
+    ["Home", "TV Shows", "Movies", "My List"],
+    ["All", "Gaming", "Music", "News"],
+    ["Top", "New", "Games", "Education"],
+    ["home_i_icon_mode_search.png", "lifestyle_home_i_mode_art.svg", "home_i_icon_mode_lifeplus_normal.png", "home_i_icon_mode_game_selected.png", "home_i_icon_system_settings.svg"]
+]
+tabs_pool_ko = [
+    ["라이브", "앱", "취향저격"],
+    ["홈", "TV 프로그램", "영화", "내 목록"],
+    ["전체", "게임", "음악", "뉴스"]
+]
+
+sections_pool = ["Continue Watching", "Recommended", "Trending Now", "Popular Apps", "Top Games"]
+sections_pool_ko = ["이어보기", "추천 콘텐츠", "인기 콘텐츠", "내가 찜한 콘텐츠", "요즘 뜨는 앱"]
+
+toolbar_sets = [
+    ["home", "photos", "settings"],
+    ["search", "home", "genres", "settings"],
+    ["home", "shorts", "subscriptions", "library"],
+    ["search", "categories", "my apps"]
+]
+toolbar_sets_ko = [["홈", "사진", "설정"], ["검색", "홈", "카테고리", "설정"]]
+
+apps_list = ["Netflix", "YouTube", "Disney+", "Spotify", "Hulu", "Zoom", "Twitch", "Prime Video"]
+apps_list_ko = ["넷플릭스", "유튜브", "디즈니+", "멜론", "웨이브", "쿠팡플레이", "TVING | 티빙", "왓챠"]
+
+regions = ["top", "mid", "btm"]
+
+def generate_screen_json(use_korean: bool):
+    use_toolbar = random.random() < 0.8
+    use_hero = random.random() < 0.9
+    use_apps = random.random() < 0.3
+    use_grid = random.random() < 0.1
+
+    if use_korean:
+        lang = "ko"
+        hero_pool = hero_titles_ko
+        tabs_pool_local = tabs_pool_ko
+        section_pool_local = sections_pool_ko
+        toolbar_pool = toolbar_sets_ko
+        app_pool = apps_list_ko
+    else:
+        lang = "en"
+        hero_pool = hero_titles
+        tabs_pool_local = tabs_pool
+        section_pool_local = sections_pool
+        toolbar_pool = toolbar_sets
+        app_pool = apps_list
+
+    screen_type = random.choice(["home", "detail", "store", "video", "gaming", "grid"])
+    #layout = {"res": "1920x1080", "lang": lang, "screen_type": screen_type}
+    #layout = {"screen_type": screen_type}
+    layout = {}
+
+    if use_toolbar:
+        use_left = use_grid = random.random() < 0.7
+        if use_left:
+            layout["tb:left"] = random.choice(toolbar_pool)
         else:
-            txt = node.get("text", "").strip()
-            b = node.get("bounds")
-            label = node.get("componentLabel", "").strip()
-            clickable = node.get("clickable")
-            if txt and b and len(b) == 4:
-                yield {"text": txt, "bounds": b, "label": label, "clickable": clickable}
-    # Use actual screen size from root node bounds
-    root_bounds = view_hierarchy.get("bounds", [0, 0, 1080, 1920])
-    screen_w = root_bounds[2]
-    screen_h = root_bounds[3]
+            layout["tb:right"] = random.choice(toolbar_pool)
 
-    def v_zone(y):
-        r = y / screen_h
-        return "top" if r < 0.33 else "mid" if r < 0.67 else "btm"
+    if use_hero and screen_type in ["home", "store", "video", "gaming"]:
+        hero = random.choice(hero_pool)
+        btns = random.choice(buttons)
+        layout["hero:top"] = f"{hero} | btn: {', '.join(btns)}"
 
-    def h_zone(x):
-        r = x / screen_w
-        return "left" if r < 0.33 else "right" if r > 0.67 else "mid"
+    if screen_type in ["home", "store", "video", "gaming"]:
+        tabs = random.choice(tabs_pool_local)
+        tabs = copy.copy(tabs)
+        layout[f"tabs:{random.choice(regions)}"] = tabs
 
-    out = {}
-    for e in leaves(view_hierarchy):
-        x1, y1, x2, y2 = e["bounds"]
-        xc, yc = (x1 + x2) / 2, (y1 + y2) / 2
-        vert = v_zone(yc)
-        horiz = h_zone(xc)
-
-        txt = e["text"]
-        label = e["label"]
-        clickable = e["clickable"]
-
-        # Use componentLabel to assign UI role
-        if label == "Multi-Tab":
-            key = f"tabs.{vert}"
-        elif label in {"Text Button", "Button Bar", "Checkbox", "Radio Button", "On/Off Switch"}:
-            key = f"list.{vert}"
-        elif label == "Toolbar" and horiz == "left":
-            key = f"tb.{horiz}"
-        else:
-            key = f"list.{vert}"
-
-        # Add prefix if label ends with "Button"
-        prefix = "btn:" if clickable else ""
-        display_text = f'{prefix}{txt}'
-
-        out.setdefault(key, [])
-        out[key].append(display_text)
-
-    return out
-
-# Load Rico JSON by screen ID (replace with your actual path)
-def load_view_hierarchy(screen_id: str, rico_dir: str) -> dict:
-    path = os.path.join(rico_dir, f"{screen_id}.json")
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def process_batch_and_write_samples(f, batch: list[tuple[str, str, str]], existing_ids: set):
-    if not batch:
-        return
-    
-    try:
-        summaries = [item[2] for item in batch] # original summary list
-        short_summaries = llm_utils.llm_request_with_rate_limit(
-            llm_utils.translate_to_korean_batch,
-            summaries,
-            rate_limiter=shared_limiter)
-    except Exception as e:
-        print(f"Error during translation: {e}")
-        return
-
-    for (sid, formatted, orig_summary), short_summary in zip(batch, short_summaries):
-        try:
-            full_summary = llm_utils.llm_request_with_rate_limit(
-                llm_utils.generate_summary_llm,
-                formatted,
-                short_summary,
-                True,
-                rate_limiter=shared_limiter)
-
-            item = {
-                "screenId": sid,
-                "input": formatted,
-                "short_summary": short_summary,
-                "full_summary": full_summary,
-            }
-
-            f.write(json.dumps(item, ensure_ascii=False) + "\n")
-            existing_ids.add(sid)
-
-        except Exception as e:
-            print(f"Error processing {sid}: {e}")
-
-def process_short_summaries_batch(f, batch: list[tuple[str, str]]):
-    if not batch:
-        return
-
-    summaries = [s for _, s in batch]
-    try:
-        translated = llm_utils.llm_request_with_rate_limit(
-            llm_utils.translate_to_korean_batch,
-            summaries,
-            rate_limiter=shared_limiter)
-        for (sid, summary), translated_summary in zip(batch, translated):
-            item = {
-                "screenId": sid,
-                "summary_en": summary,
-                "summary_kr": translated_summary,
-            }
-        
-            f.write(json.dumps(item, ensure_ascii=False) + "\n")
-    except Exception as e:
-        print(f"Error during translation: {e}")
-
-def process_full_summaries_batch(f, batch: list[tuple[str, str]], existing_ids: set, is_korean: bool):
-    if not batch:
-        return
-    
-    try:
-        formatted = [item["formatted"] for item in batch]
-        short_summaries = [item["summary"] for item in batch]
-        full_summaries = llm_utils.llm_request_with_rate_limit(
-            llm_utils.generate_summary_llm_batch,
-            formatted,
-            short_summaries,
-            is_korean,
-            rate_limiter=shared_limiter)
-
-        for item, full_summary in zip(batch, full_summaries):
-            result = {
-                "screenId": item["screenId"],
-                "input": item["formatted"],
-                "short_summary": item["summary"],
-                "full_summary": full_summary,
-            }
-            f.write(json.dumps(result, ensure_ascii=False) + "\n")
-            existing_ids.add(item["screenId"])
-    except Exception as e:
-        print(f"Error generating full summaries: {e}")
-        return
-
-def generate_short_summaries(screen2words_csv: str, out_path: str, available_ids: set, max_samples=3000):
-    df = pd.read_csv(screen2words_csv)
-    # Read existing screenIds from the output file
-    existing_ids = set()
-    if os.path.exists(out_path):
-        with open(out_path, "r", encoding="utf-8") as f:
-            for line in f:
-                item = json.loads(line)
-                existing_ids.add(item["screenId"])
-    # Filter available & new IDs
-    target_ids = available_ids - existing_ids
-    filtered_df = df[df["screenId"].astype(str).isin(target_ids)]
-    sampled_df = filtered_df.sample(n=min(max_samples, len(filtered_df)), random_state=42)
-    
-    batch = []
-
-    with open(out_path, "a", encoding="utf-8") as f:
-        for _, row in tqdm(sampled_df.iterrows(), total=len(sampled_df), desc="Processing"):
-            sid = str(row["screenId"])
-            summary = row["summary"]
-            
-            batch.append((sid, summary))
-
-            if len(batch) == 20:
-                process_short_summaries_batch(f, batch)
-                batch.clear()
-
-        if batch:
-            process_short_summaries_batch(f, batch)
-
-def estimate_token_length(text: str) -> int:
-    return len(text.split())
-
-def generate_full_summaries(short_summary_jsonl: str, rico_dir: str, output_jsonl: str, is_korean: bool, batch_size=3, max_batch_tokens=12000):
-    existing_ids = set()
-    if os.path.exists(output_jsonl):
-        with open(output_jsonl, "r", encoding="utf-8") as f:
-            for line in f:
-                existing_ids.add(json.loads(line)["screenId"])
-
-    with open(short_summary_jsonl, "r", encoding="utf-8") as f:
-        samples = [
-            json.loads(line)
-            for line in f
-            if json.loads(line)["screenId"] not in existing_ids
-        ]
-    
-    batch = []
-    token_sum = 0
-
-    with open(output_jsonl, "a", encoding="utf-8") as out:
-        for item in tqdm(samples, desc="Generating full summaries"):
-            sid = item["screenId"]
-            summary = item["summary_kr"] if is_korean else item["summary_en"]
-
-            try:
-                view_hierarchy = load_view_hierarchy(sid, rico_dir)
-                formatted = convert_to_custom_format(view_hierarchy)
-                if not formatted:
-                    continue
-                formatted = json.dumps(formatted, ensure_ascii=False, indent=2)
-                if len(formatted) > 3000 or len(formatted) < 30:
-                    print(f"Skipping {sid} due to input length: {len(formatted)}")  # Skip too long/short inputs
-                    continue
-            except Exception as e:
-                print(f"Error loading view hierarchy for {sid}: {e}")
-                continue
-
-            token_estimate = estimate_token_length(summary)
-            batch.append({
-                "screenId": sid,
-                "formatted": formatted,
-                "summary": summary,
-            })
-            token_sum += token_estimate
-
-            if len(batch) >= batch_size or token_sum >= max_batch_tokens:
-                process_full_summaries_batch(out, batch, existing_ids, is_korean)
-                batch.clear()
-                token_sum = 0
-        if batch:
-            process_full_summaries_batch(out, batch, existing_ids, is_korean)
-
-def load_full_summary_map(path: str) -> dict:
-    full_map = {}
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                try:
-                    item = json.loads(line)
-                    full_map[item["screenId"]] = item
-                except:
-                    continue
-    return full_map
-
-def load_short_summary_map(path: str):
-    short_map = {}
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            item = json.loads(line)
-            short_map[item["screenId"]] = item
-
-    return short_map
-
-def regenerate_and_update_full_summary(sid: str, short_item: dict, full_map: dict, rico_dir: str, is_korean: bool):
-    try:
-        view_hierarchy = load_view_hierarchy(sid, rico_dir)
-        formatted = convert_to_custom_format(view_hierarchy)
-        if not formatted:
-            return False
-
-        summary = short_item["summary_kr"] if is_korean else short_item["summary_en"]
-
-        full_summary = llm_utils.llm_request_with_rate_limit(
-            llm_utils.generate_summary_llm_batch,
-            [formatted],
-            [summary],
-            is_korean,
-            rate_limiter=shared_limiter)
-
-        if not full_summary:
-            return False
-
-        full_map[sid] = {
-            "screenId": sid,
-            "input": formatted,
-            "short_summary": summary,
-            "full_summary": full_summary[0],
+    if use_grid and screen_type in ["store", "grid"]:
+        layout["grid:main*"] = {
+            "title": "Top Picks" if lang == "en" else "추천 앱",
+            "items": random.sample(app_pool, 6)
         }
-        return True
 
-    except Exception as e:
-        print(f"Error processing {sid}: {e}")
-        return False
+    for _ in range(random.randint(1, 3)):
+        list_key = f"list:{random.choice(regions)}"
+        layout[list_key] = []
+        for _ in range(random.randint(1, 3)):
+            use_title = random.random() < 0.4
+            title = random.choice(section_pool_local)
+            items = random.sample(hero_pool + hero_titles + app_pool, random.randint(1, 5))
+            if use_title:
+                layout[list_key].append(f"[{title}]: {', '.join(items)}")
+            else:
+                layout[list_key].append(f"{', '.join(items)}")
 
-def write_full_summary_map(path: str, full_map: dict):
-    with open(path, "w", encoding="utf-8") as f:
-        for item in full_map.values():
-            f.write(json.dumps(item, ensure_ascii=False) + "\n")
+    if use_apps:
+        apps_key = f"apps:{random.choice(regions)}"
+        items = random.sample(app_pool, random.randint(1, 5))
+        layout[apps_key] = f"{', '.join(items)}"
 
+    return layout
 
-def repair_by_conditions(short_summary_jsonl: str, full_summary_jsonl: str, rico_dir: str, is_korean: bool):
-    full_map = load_full_summary_map(full_summary_jsonl)
-    short_map = load_short_summary_map(short_summary_jsonl)
+def extract_layouts_from_input_file(input_file_path):
+    with open(input_file_path, "r") as file:
+        return json.load(file)
 
-    retry_ids = [
-        sid for sid, item in short_map.items()
-        if sid not in full_map or len(full_map[sid]["full_summary"]) < 20
-    ]
-    print(f"Retrying and replacing {len(retry_ids)} entries...")
-
-    for sid in tqdm(retry_ids):
-        regenerate_and_update_full_summary(sid, short_map[sid], full_map, rico_dir, is_korean)
-    
-    write_full_summary_map(full_summary_jsonl, full_map)
-    
-    print("Repair complete.")
-
-def repair_specific_ids(ids: list[str], short_summary_jsonl: str, full_summary_jsonl: str, rico_dir: str, is_korean: bool):
-    full_map = load_full_summary_map(full_summary_jsonl)
-    short_map = load_short_summary_map(short_summary_jsonl)
-
-    retry_ids = [sid for sid in ids if sid in short_map]
-    print(f"Retrying and replacing {len(retry_ids)} entries...")
-
-    for sid in tqdm(retry_ids):
-        regenerate_and_update_full_summary(sid, short_map[sid], full_map, rico_dir, is_korean)
-
-    write_full_summary_map(full_summary_jsonl, full_map)
-
-
-# Load ScreenQA JSON
-def build_qa_dataset(screenqa_json_path: str, rico_dir: str, available_ids: set, max_samples=2000):
-    with open(screenqa_json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    filtered = [d for d in data if str(d["image_id"]) in available_ids and d["ground_truth"]]
-    sampled = random.sample(filtered, k=max_samples)
-
-    dataset = []
-    for item in sampled:
-        sid = str(item["image_id"])
-        question = item["question"].strip()
-        answer = item["ground_truth"][0]["full_answer"].strip()
-
-        try:
-            view_hierarchy = load_view_hierarchy(sid, rico_dir)
-            formatted = convert_to_custom_format(view_hierarchy)
-            if formatted:
-                dataset.append({
-                    "input": f"Question: {question}\nContext: {json.dumps(formatted, ensure_ascii=False)}",
-                    "output": answer
-                })
-        except:
-            continue
-    return dataset
-
-#view = load_view_hierarchy("35567", rico_dir="../rico/rico_dataset_v0.1_semantic_annotations/semantic_annotations")
-#print(json.dumps(convert_to_custom_format(view), indent=2, ensure_ascii=False))
+def generate_screen_layout(layouts, index, use_korean):
+    if index < len(layouts):
+        return layouts[index]
+    else:
+        return generate_screen_json(use_korean)
 
 shared_limiter = llm_utils.RateLimiter(max_calls=20, per_seconds=61)
+def generate_dataset(n=20, output_file="synthetic_tv_data_kr.jsonl"):
+    layouts = extract_layouts_from_input_file("sample_data/input.json")
+    with open(output_file, "a") as f:
+        for i in range(n):
+            formatted = json.dumps(
+                (layouts, i, True), ensure_ascii=False, indent=2)
+            print(formatted)
+            summary = llm_utils.llm_request_with_rate_limit(
+                llm_utils.generate_summary_llm,
+                formatted,
+                True,
+                rate_limiter=shared_limiter)
+            
+            print(f"\n summary {i+1} / {n} : \n{summary}\n")
+            record = {
+                "input": formatted,
+                "output": summary
+            }
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-RICO_PATH = "../rico/rico_dataset_v0.1_semantic_annotations/semantic_annotations"
-OUT_PATH = "screen_summary.jsonl"
-SHORT_SUMMARIES_OUT = "short_summaries.jsonl"
-FULL_SUMMARIES_OUT = "full_summaries.jsonl"
-
-available_ids = {f.replace(".json", "") for f in os.listdir(RICO_PATH)}
-#build_summary_dataset(screen2words_csv="../rico/screen_summaries.csv", rico_dir=RICO_PATH, out_path=OUT_PATH, available_ids=available_ids, max_samples=20)
-#generate_short_summaries(screen2words_csv="../rico/screen_summaries.csv", out_path=SHORT_SUMMARIES_OUT, available_ids=available_ids, max_samples=500)
-generate_full_summaries(short_summary_jsonl=SHORT_SUMMARIES_OUT, rico_dir=RICO_PATH, output_jsonl=FULL_SUMMARIES_OUT, is_korean=True, batch_size=3, max_batch_tokens=12000)
-#repair_by_conditions(SHORT_SUMMARIES_OUT, FULL_SUMMARIES_OUT, RICO_PATH, is_korean=True)
-#repair_specific_ids(["14835"], SHORT_SUMMARIES_OUT, FULL_SUMMARIES_OUT, RICO_PATH, is_korean=True)
-#print(dataset)
+if __name__ == "__main__":
+    generate_dataset(n=500)
