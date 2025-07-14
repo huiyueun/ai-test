@@ -10,27 +10,18 @@ std::vector<Accessibility::Relation> GetAccessibilityRelations(Toolkit::Control 
 
     Accessibility::Relation newRelation(relationType, {});
 
-    for (const auto& weakActor : targets)
-    {
-      if (auto actor = weakActor.GetHandle())
-      {
-        if (auto accessible = Accessibility::Accessible::Get(actor))
-        {
-          newRelation.mTargets.push_back(accessible);
-        }
-      }
-    }
-
-    // C++17에서는 std::erase_if가 없으므로 반복문으로 제거
     for (auto it = targets.begin(); it != targets.end(); )
     {
       auto actor = it->GetHandle();
-      if (!actor || !Accessibility::Accessible::Get(actor))
+      auto accessible = actor ? Accessibility::Accessible::Get(actor) : nullptr;
+
+      if (!accessible)
       {
         it = targets.erase(it);  // 무효한 weak handle 제거
       }
       else
       {
+        newRelation.mTargets.push_back(accessible);
         ++it;
       }
     }
