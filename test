@@ -1,20 +1,16 @@
-#include <dali/public-api/math/vector3.h>
-#include <dali/public-api/math/quaternion.h>
 
-Dali::Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
+
+Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
-  using namespace Dali;
+  Vector3 fromTo = (to - from);
+  fromTo.Normalize();
+  Vector3 forward = fromTo;
+  Vector3 defaultForward = Vector3::ZAXIS;
 
-  Vector3 forward = (to - from).Normalize();
-  Vector3 defaultForward = Vector3::ZAXIS; // 보통 Z축을 기본 전방으로 설정
-
-  // 두 방향이 완전히 반대일 경우 예외 처리
   if (forward + defaultForward == Vector3::ZERO) {
-    // 180도 회전 → 임의 축으로 회전 (Y축 기준)
     return Quaternion(Radian(Math::PI), up);
   }
 
-  // forward와 기본 forward 사이 각도 기반 회전 쿼터니언
   Vector3 rotationAxis = defaultForward.Cross(forward);
   rotationAxis.Normalize();
 
@@ -22,4 +18,50 @@ Dali::Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3
   float angle = std::acos(dot);
 
   return Quaternion(Radian(angle), rotationAxis);
+}
+
+void AdjustHighlightOrientation(Actor& highlight) {
+  Quaternion totalInverseRotation = Quaternion::IDENTITY;
+
+  Actor current = highlight.GetParent();
+  Scene3D::SceneView sceneView;
+
+  while (current) {
+    sceneView = DownCast<Scene3D::SceneView>(current);
+    if (current) {
+      break;
+    }
+    auto orientationValue = current.GetProperty(Actor::Property::ORIENTATION);
+    Quaternion parentRotation;
+    if (orientationValue.Get(parentRotation)) {
+      parentRotation.Invert();
+      totalInverseRotation *= parentRotation;
+    }
+
+    current = current.GetParent();
+  }
+
+  if (!sceneView) {
+    return;
+  }
+
+  CameraActor camera = sceneView.GetSelectedCamera();
+  if (!camera) return;
+
+  auto camVal = camera.GetProperty(Actor::Property::POSITION);  
+  Vector3 camPos;  
+  if (!camVal.Get(camPos)) {
+    return;
+  }
+
+
+  auto hilightVal = highlight.GetProperty(Actor::Property::POSITION);  
+  Vector3 highlightPos;  
+  if (!hilightVal.Get(highlightPos)) {
+    return;
+  }
+  Quaternion lookAtRotation = QuaternionLookAt(highlightPos, camPos);
+  Quaternion finalRotation = totalInverseRotation * lookAtRotation;
+
+  highlight.SetProperty(Actor::Property::ORIENTATION, finalRotation);
 }
