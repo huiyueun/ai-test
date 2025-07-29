@@ -1,3 +1,48 @@
+Dali::Quaternion LookAtWithFixedUp_NoMatrix(const Dali::Vector3& from,
+                                             const Dali::Vector3& to,
+                                             const Dali::Vector3& up = Dali::Vector3::YAXIS)
+{
+  using namespace Dali;
+
+  Vector3 forward = to - from;
+  if (forward.LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAtFixedUp: from and to are too close\n");
+    return Quaternion();
+  }
+
+  forward.Normalize();
+
+  // up과 forward가 수직이 아닌 경우 회전이 틀어질 수 있으므로 right 기준부터 계산
+  Vector3 right = up.Cross(forward);
+  if (right.LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAtFixedUp: up and forward are parallel\n");
+    return Quaternion();
+  }
+  right.Normalize();
+
+  Vector3 adjustedForward = right.Cross(up);
+  adjustedForward.Normalize();
+
+  Vector3 defaultForward = Vector3::ZAXIS;
+  if ((adjustedForward + defaultForward).LengthSquared() < 1e-6f)
+  {
+    // 180도 회전
+    return Quaternion(Radian(Math::PI), up);
+  }
+
+  Vector3 rotationAxis = defaultForward.Cross(adjustedForward);
+  rotationAxis.Normalize();
+
+  float angle = std::acos(defaultForward.Dot(adjustedForward));
+
+  DALI_LOG_RELEASE_INFO("LookAtFixedUp: angle %.3f, axis (%.3f, %.3f, %.3f)\n",
+                        angle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+
+  return Quaternion(Radian(angle), rotationAxis);
+}
+
 Dali::Quaternion LookAtWithFixedUp(const Dali::Vector3& from,
                                     const Dali::Vector3& to,
                                     const Dali::Vector3& up = Dali::Vector3::YAXIS)
