@@ -1,126 +1,15 @@
-import argparse
-import requests
-import time
-import json
-import hashlib
-import random
-from datetime import datetime
 
-EXCLUDED_LABELS = {"추천", "라이브", "앱스", "삼성 TV Plus", "Netflix", "Prime Video", "YouTube", "TVING", "Watcha", "wavve", "광고"}
+void AdjustHighlightOrientation(Actor& highlight, const Vector3& camPos) {  
+  //highlight.SetProperty(Actor::Property::ORIENTATION, Quaternion());  
 
-clicked_ids = set()
-
-def get_raw_tree_hash(raw_tree_str):
-    try:
-        parsed = json.loads(raw_tree_str)
-        raw_tree_str_sorted = json.dumps(parsed, sort_keys=True)
-        return hashlib.md5(raw_tree_str_sorted.encode("utf-8")).hexdigest()
-    except Exception as e:
-        print(e)
-        return ""
-
-def wait_for_result(server_url, request_id, timeout=10, interval=0.5):
-    retries = int(timeout / interval)
-    for _ in range(retries):
-        r = requests.get(f"{server_url}/collect_result", params={"id": request_id})
-        if r.status_code == 200:
-            data = r.json()
-            if data.get("status") == "done":
-                return data
-        time.sleep(interval)
-    print(f"Timed out waiting for result {request_id}")
-    return None
-
-def detect_exit_popup(clickables):
-    for item in clickables:
-        label = item.get("label", "").lower()
-        if "확인" in label or "ok" in label:
-            return True
-    return False
-
-def find_ok_button_id(clickables):
-    for item in clickables:
-        label = item.get("label", "").lower()
-        if "확인" in label or "ok" in label:
-            return item["id"]
-    return None
-
-def is_excluded_label(label):
-    if not label:
-        return False
-    l = label.lower()
-    return any(excluded in l for excluded in EXCLUDED_LABELS)
-
-def save_result(result, output_file):
-    with open(output_file, "a", encoding="utf-8") as f:
-        f.write(json.dumps(result, ensure_ascii=False) + "\n")
-
-def crawl_screen(server_url, depth, max_depth, output_file):
-    if depth > max_depth:
-        print(f"Reached max depth {depth}")
-        return
-
-    print(f">> Depth {depth}")
-    req = requests.post(f"{server_url}/collect", json={"action": "summarize"})
-    request_id = req.json().get("request_id")
-    result = wait_for_result(server_url, request_id)
-    if not result:
-        return
-
-    save_result(result, output_file)
-    before_hash = get_raw_tree_hash(result["raw_tree"])
-    clickable_items = result.get("clickable", [])
-
-    valid_items = [
-        item for item in clickable_items
-        if not is_excluded_label(item["label"])
-        and item["id"] not in clicked_ids
-    ]
-
-    if not valid_items:
-        print("No more valid clickable elements")
-        return
-
-    while valid_items:
-        item = random.choice(valid_items)
-        chosen_id = item["id"]
-        print(f"Clicking: {chosen_id} ({item['label']})")
-        clicked_ids.add(chosen_id)
-
-        requests.post(f"{server_url}/collect", json={"action": "click", "target": chosen_id})
-        time.sleep(10)
-
-        req2 = requests.post(f"{server_url}/collect", json={"action": "summarize"})
-        after_id = req2.json().get("request_id")
-        after_result = wait_for_result(server_url, after_id)
-        if not after_result:
-            return
-
-        after_hash = get_raw_tree_hash(after_result["raw_tree"])
-
-        if before_hash != after_hash:
-            print("Screen changed → Going deeper")
-            crawl_screen(server_url, depth + 1, max_depth, output_file)
-
-            # back
-            depth = 0
-            requests.post(f"{server_url}/collect", json={"action": "home"})
-            time.sleep(2)
-        else:
-            print(f"No screen change for {chosen_id}, trying another...")
-            valid_items = [i for i in valid_items if i["id"] != chosen_id]
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--server", type=str, required=True, help="Server URL")
-    parser.add_argument("--depth", type=int, default=3, help="Max depth of crawling")
-    parser.add_argument("--output", type=str, default=None, help="Output file path for results")
-    args = parser.parse_args()
-
-    if args.output:
-        output_file = args.output
-    else:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"screen_results_{timestamp}.jsonl"
-
-    crawl_screen(args.server, 0, args.depth, output_file)
+  Actor parent = highlight.GetParent();  
+  if (parent) {  
+    auto orientationValue = parent.GetProperty(Actor::Property::ORIENTATION);  
+    Quaternion parentRotation;  
+    if (orientationValue.Get(parentRotation)) {  
+      parentRotation.Invert();  
+    }  
+    //highlight.SetProperty(Actor::Property::ORIENTATION, parentRotation);  
+  }  
+  //Dali::DevelActor::LookAt(parent2, camPos);  
+}
