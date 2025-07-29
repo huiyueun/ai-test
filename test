@@ -68,7 +68,11 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
   if (!sceneView)
   {
     highlight.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::TOP_LEFT);
+    highlight.SetProperty(Actor::Property::PARENT_ORIGIN, ParentOrigin::TOP_LEFT);
     highlight.SetProperty(Actor::Property::ORIENTATION, Quaternion());
+
+    highlight.SetProperty(Actor::Property::POSITION_Z, 1.0f);
+    highlight.SetProperty(Actor::Property::POSITION, Vector2(0.0f, 0.0f));
     DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView not found, aborting\n");
     return;
   }
@@ -109,7 +113,11 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
 
 
   highlight.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::CENTER);
+  highlight.SetProperty(Actor::Property::PARENT_ORIGIN, ParentOrigin::CENTER);
   highlight.SetProperty(Actor::Property::ORIENTATION, finalRotation);
 
+
+  const float offset = -1.0f;
+  highlight.SetProperty(Actor::Property::POSITION, Vector3(0.0f, offset, 0.0f));
   DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Orientation applied successfully\n");
 }
