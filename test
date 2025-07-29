@@ -1,16 +1,15 @@
 
 Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
-  Vector3 fromTo = (to - from);
-  if (fromTo.LengthSquared() < 1e-6f)
+  auto forward = (to - from);
+  if (forward.LengthSquared() < 1e-6f)
   {
     DALI_LOG_RELEASE_INFO("LookAt: from and to are too close; returning identity quaternion\n");
     return Quaternion();
   }
 
-  fromTo.Normalize();
-  Vector3 forward = fromTo;
-  Vector3 defaultForward = Vector3::ZAXIS;
+  forward.Normalize();
+  auto defaultForward = Vector3::ZAXIS;
 
   if ((forward + defaultForward).LengthSquared() < 1e-6f)
   {
@@ -18,11 +17,10 @@ Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, 
     return Quaternion(Radian(Math::PI), up);
   }
 
-  Vector3 rotationAxis = defaultForward.Cross(forward);
+  auto rotationAxis = defaultForward.Cross(forward);
   rotationAxis.Normalize();
 
-  float dot = defaultForward.Dot(forward);
-  float angle = std::acos(dot);
+  auto angle = std::acos(defaultForward.Dot(forward));
 
   DALI_LOG_RELEASE_INFO("LookAt: angle: %.3f, axis: (%.3f, %.3f, %.3f)\n", angle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
 
@@ -31,9 +29,10 @@ Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, 
 
 void AdjustHighlightOrientation(Dali::Actor& highlight)
 {
-  Quaternion totalInverseRotation = Quaternion::IDENTITY;
+  auto modelFound = false;
+  auto totalInverseRotation = Quaternion::IDENTITY;
+  auto current = highlight.GetParent();
 
-  Actor current = highlight.GetParent();
   Scene3D::SceneView sceneView;
 
   while (current)
@@ -43,6 +42,10 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
     {
       DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView found\n");
       break;
+    }
+
+    if (Scene3D::Model::DownCast(current)) {
+      modelFound = true;
     }
 
     auto orientationValue = current.GetProperty(Actor::Property::ORIENTATION);
@@ -64,11 +67,19 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
 
   if (!sceneView)
   {
+    highlight.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::TOP_LEFT);
+    highlight.SetProperty(Actor::Property::ORIENTATION, Quaternion());
     DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView not found, aborting\n");
     return;
   }
 
-  CameraActor camera = sceneView.GetSelectedCamera();
+  if (!modelFound)
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation:No Model found\n");
+    return;
+  }
+
+  auto camera = sceneView.GetSelectedCamera();
   if (!camera)
   {
     DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Selected camera is null\n");
@@ -93,9 +104,11 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
                         highlightPos.x, highlightPos.y, highlightPos.z,
                         camPos.x, camPos.y, camPos.z);
 
-  Quaternion lookAtRotation = QuaternionLookAt(highlightPos, camPos);
-  Quaternion finalRotation = totalInverseRotation * lookAtRotation;
+  auto lookAtRotation = QuaternionLookAt(highlightPos, camPos);
+  auto finalRotation = totalInverseRotation * lookAtRotation;
 
+
+  highlight.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::CENTER);
   highlight.SetProperty(Actor::Property::ORIENTATION, finalRotation);
 
   DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Orientation applied successfully\n");
