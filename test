@@ -1,4 +1,27 @@
+Quaternion LookAtHorizontally(const Vector3& from, const Vector3& to)
+{
+  using namespace Dali;
 
+  Vector3 forward = (to - from).Normalize();
+  Vector3 up = Vector3::YAXIS; // 항상 월드 수직축 고정
+
+  // 카메라가 수직 정렬 상태에서 정확히 위/아래를 보면 Cross가 0됨 → 보정 필요
+  if (fabsf(forward.Dot(up)) > 0.99f)
+  {
+    up = Vector3::ZAXIS; // 보조 수직축 사용
+  }
+
+  Vector3 right = up.Cross(forward).Normalize();
+  Vector3 correctedUp = forward.Cross(right).Normalize();
+
+  Matrix3 rotationMatrix(
+    right.x,     right.y,     right.z,
+    correctedUp.x, correctedUp.y, correctedUp.z,
+    forward.x,   forward.y,   forward.z
+  );
+
+  return Quaternion(rotationMatrix);
+}
 Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
   auto forward = (to - from);
