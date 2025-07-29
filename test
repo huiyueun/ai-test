@@ -1,21 +1,25 @@
 #include <dali/public-api/math/vector3.h>
 #include <dali/public-api/math/quaternion.h>
 
-// 단위 방향 벡터 기준으로 LookAt Quaternion 계산
-Dali::Quaternion LookAtQuaternion(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
+Dali::Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
   using namespace Dali;
 
   Vector3 forward = (to - from).Normalize();
-  Vector3 right   = up.Cross(forward).Normalize();
-  Vector3 newUp   = forward.Cross(right);
+  Vector3 defaultForward = Vector3::ZAXIS; // 보통 Z축을 기본 전방으로 설정
 
-  // 회전 행렬 구성
-  Matrix3 rotationMatrix(
-    right.x,   right.y,   right.z,
-    newUp.x,   newUp.y,   newUp.z,
-    forward.x, forward.y, forward.z
-  );
+  // 두 방향이 완전히 반대일 경우 예외 처리
+  if (forward + defaultForward == Vector3::ZERO) {
+    // 180도 회전 → 임의 축으로 회전 (Y축 기준)
+    return Quaternion(Radian(Math::PI), up);
+  }
 
-  return Quaternion(rotationMatrix);
+  // forward와 기본 forward 사이 각도 기반 회전 쿼터니언
+  Vector3 rotationAxis = defaultForward.Cross(forward);
+  rotationAxis.Normalize();
+
+  float dot = defaultForward.Dot(forward);
+  float angle = std::acos(dot);
+
+  return Quaternion(Radian(angle), rotationAxis);
 }
