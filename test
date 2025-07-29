@@ -1,13 +1,23 @@
-
+#include <dali/public-api/common/dali-log.h>
 
 Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
+  using namespace Dali;
+
   Vector3 fromTo = (to - from);
+  if (fromTo.LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAt: from and to are too close; returning identity quaternion\n");
+    return Quaternion();
+  }
+
   fromTo.Normalize();
   Vector3 forward = fromTo;
   Vector3 defaultForward = Vector3::ZAXIS;
 
-  if (forward + defaultForward == Vector3::ZERO) {
+  if ((forward + defaultForward).LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAt: 180-degree rotation case detected\n");
     return Quaternion(Radian(Math::PI), up);
   }
 
@@ -17,51 +27,83 @@ Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, 
   float dot = defaultForward.Dot(forward);
   float angle = std::acos(dot);
 
+  DALI_LOG_RELEASE_INFO("LookAt: angle: %.3f, axis: (%.3f, %.3f, %.3f)\n", angle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+
   return Quaternion(Radian(angle), rotationAxis);
 }
 
-void AdjustHighlightOrientation(Actor& highlight) {
+void AdjustHighlightOrientation(Dali::Actor& highlight)
+{
+  using namespace Dali;
+
+  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: started\n");
+
   Quaternion totalInverseRotation = Quaternion::IDENTITY;
 
   Actor current = highlight.GetParent();
   Scene3D::SceneView sceneView;
 
-  while (current) {
+  while (current)
+  {
     sceneView = DownCast<Scene3D::SceneView>(current);
-    if (current) {
+    if (sceneView)
+    {
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView found\n");
       break;
     }
+
     auto orientationValue = current.GetProperty(Actor::Property::ORIENTATION);
     Quaternion parentRotation;
-    if (orientationValue.Get(parentRotation)) {
+    if (orientationValue.Get(parentRotation))
+    {
       parentRotation.Invert();
       totalInverseRotation *= parentRotation;
+
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Inverted parent rotation applied\n");
+    }
+    else
+    {
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Failed to get parent rotation\n");
     }
 
     current = current.GetParent();
   }
 
-  if (!sceneView) {
+  if (!sceneView)
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView not found, aborting\n");
     return;
   }
 
   CameraActor camera = sceneView.GetSelectedCamera();
-  if (!camera) return;
-
-  auto camVal = camera.GetProperty(Actor::Property::POSITION);  
-  Vector3 camPos;  
-  if (!camVal.Get(camPos)) {
+  if (!camera)
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Selected camera is null\n");
     return;
   }
 
-
-  auto hilightVal = highlight.GetProperty(Actor::Property::POSITION);  
-  Vector3 highlightPos;  
-  if (!hilightVal.Get(highlightPos)) {
+  Vector3 camPos;
+  if (!camera.GetProperty(Actor::Property::POSITION).Get(camPos))
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Failed to get camera position\n");
     return;
   }
+
+  Vector3 highlightPos;
+  if (!highlight.GetProperty(Actor::Property::POSITION).Get(highlightPos))
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Failed to get highlight position\n");
+    return;
+  }
+
+  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: highlightPos (%.2f, %.2f, %.2f), camPos (%.2f, %.2f, %.2f)\n",
+                        highlightPos.x, highlightPos.y, highlightPos.z,
+                        camPos.x, camPos.y, camPos.z);
+
   Quaternion lookAtRotation = QuaternionLookAt(highlightPos, camPos);
   Quaternion finalRotation = totalInverseRotation * lookAtRotation;
 
   highlight.SetProperty(Actor::Property::ORIENTATION, finalRotation);
+
+  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Orientation applied successfully\n");
 }
