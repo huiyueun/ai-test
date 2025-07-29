@@ -1,9 +1,6 @@
-#include <dali/public-api/common/dali-log.h>
 
 Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, const Dali::Vector3& up = Dali::Vector3::YAXIS)
 {
-  using namespace Dali;
-
   Vector3 fromTo = (to - from);
   if (fromTo.LengthSquared() < 1e-6f)
   {
@@ -34,10 +31,6 @@ Quaternion QuaternionLookAt(const Dali::Vector3& from, const Dali::Vector3& to, 
 
 void AdjustHighlightOrientation(Dali::Actor& highlight)
 {
-  using namespace Dali;
-
-  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: started\n");
-
   Quaternion totalInverseRotation = Quaternion::IDENTITY;
 
   Actor current = highlight.GetParent();
@@ -45,7 +38,7 @@ void AdjustHighlightOrientation(Dali::Actor& highlight)
 
   while (current)
   {
-    sceneView = DownCast<Scene3D::SceneView>(current);
+    sceneView = Scene3D::SceneView::DownCast(current);
     if (sceneView)
     {
       DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView found\n");
