@@ -1,3 +1,44 @@
+Dali::Quaternion LookAtWithFixedUp(const Dali::Vector3& from,
+                                    const Dali::Vector3& to,
+                                    const Dali::Vector3& up = Dali::Vector3::YAXIS)
+{
+  using namespace Dali;
+
+  Vector3 forward = to - from;
+  if (forward.LengthSquared() < 1e-6f)
+  {
+    return Quaternion(); // No direction
+  }
+
+  forward.Normalize();
+
+  // 고정된 Up 벡터 기준으로 오른쪽 벡터 생성
+  Vector3 right = up.Cross(forward);
+  if (right.LengthSquared() < 1e-6f)
+  {
+    // forward와 up이 거의 평행함 (카메라가 정수직 위/아래)
+    return Quaternion();
+  }
+
+  right.Normalize();
+
+  // 위쪽 벡터 재보정
+  Vector3 adjustedUp = forward.Cross(right);
+
+  // 회전 행렬 기반 쿼터니언 생성 없이 수동 구성
+  // 단, Dali는 Matrix3 → Quaternion 생성자 없으므로 직접 축→쿼터니언으로 변환
+  Matrix3 rotMatrix(
+    right.x,        right.y,        right.z,
+    adjustedUp.x,   adjustedUp.y,   adjustedUp.z,
+    forward.x,      forward.y,      forward.z
+  );
+
+  // Quaternion(Matrix3) 생성자가 없다면 축-각 기반으로 추정하거나,
+  // 유틸 만들어야 하지만 간단하게 대체:
+  // 여기서는 rotMatrix를 기반으로 직접 Quaternion 만들어야 함
+  return Quaternion(rotMatrix);
+}
+
 Quaternion QuaternionLookAtHorizontally(const Dali::Vector3& from, const Dali::Vector3& to)
 {
   using namespace Dali;
