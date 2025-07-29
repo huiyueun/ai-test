@@ -1,3 +1,31 @@
+Quaternion QuaternionLookAtHorizontally(const Dali::Vector3& from, const Dali::Vector3& to)
+{
+  using namespace Dali;
+
+  auto forward = (to - from);
+  if (forward.LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAtHorizontally: from and to are too close; returning identity quaternion\n");
+    return Quaternion();
+  }
+
+  // 월드 수직(Y축)을 유지한 채 방향 벡터만 사용
+  forward.Normalize();
+
+  // 투영: forward 벡터를 월드 수평면 (XZ 평면)에 투영하여 tilt 제거
+  forward.y = 0.0f;
+  if (forward.LengthSquared() < 1e-6f)
+  {
+    DALI_LOG_RELEASE_INFO("LookAtHorizontally: direction is vertical; using identity\n");
+    return Quaternion();
+  }
+
+  forward.Normalize();
+  auto defaultForward = Vector3::ZAXIS;
+
+  // 180도 회전 예외 처리
+  if ((forward + defaultForward).LengthSquared
+
 Quaternion LookAtHorizontally(const Vector3& from, const Vector3& to)
 {
   using namespace Dali;
