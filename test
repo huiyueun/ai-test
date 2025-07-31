@@ -1,12 +1,85 @@
+void ControlAccessible::AdjustHighlightOrientation(Dali::Actor& highlight)
+{
+  auto modelFound = false;
+  auto current = highlight.GetParent();
 
+  Scene3D::SceneView sceneView;
 
-  const float offset = -10.0f;
+  while (current)
+  {
+    sceneView = Scene3D::SceneView::DownCast(current);
+    if (sceneView)
+    {
+      Actor overlayActor = mCurrentHighlightOverlayActor.GetHandle();
+      if (overlayActor == nullptr) 
+      {
+        DALI_LOG_RELEASE_INFO("mCurrentHighlightOverlayActor.GetHandle() is nullptr\n");
+        auto highlightLayer = CreateHighlightOverlayActor();
+        //highlightLayer.SetProperty(Actor::Property::SIZE, Vector2(500.0f, 500.0f));
+
+        auto testHighlightActor = CreateHighlightTestActor();
+        highlightLayer.Add(testHighlightActor);
+
+        sceneView.GetParent().Add(highlightLayer);
+
+        mCurrentHighlightOverlayActor = Dali::WeakHandle<Dali::Actor>(highlightLayer);
+        mCurrentTestHighlightActor = Dali::WeakHandle<Dali::Actor>(testHighlightActor);
+      }
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView found\n");
+      break;
+    }
+
+    if (Scene3D::Model::DownCast(current)) {
+      modelFound = true;
+    }
+
+    current = current.GetParent();
+  }
+
+  if (!sceneView)
+  {
+    highlight.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::TOP_LEFT);
+    highlight.SetProperty(Actor::Property::PARENT_ORIGIN, ParentOrigin::TOP_LEFT);
+    highlight.SetProperty(Actor::Property::ORIENTATION, Quaternion());
+    highlight.SetProperty(Actor::Property::POSITION_Z, 1.0f);
+    highlight.SetProperty(Actor::Property::POSITION, Vector2(0.0f, 0.0f));
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: SceneView not found, aborting\n");
+    return;
+  }
+
+  if (!modelFound)
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation:No Model found\n");
+    return;
+  }
+
+  Vector2 screenPos;
+  if (!highlight.GetProperty(Actor::Property::SCREEN_POSITION).Get(screenPos))
+  {
+    DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Failed to get camera position\n");
+    return;
+  }
   
-  Vector3 cameraForward = finalRotation * Vector3::ZAXIS;
-  cameraForward.Normalize();
+  auto highlightOverlayActor = mCurrentHighlightOverlayActor.GetHandle();
+  if (highlightOverlayActor != nullptr) {
 
-  auto newPosition = highlightPos + cameraForward * offset;    
-
-  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: newPosition (%.2f, %.2f, %.2f)\n",
-                        newPosition.x, newPosition.y, newPosition.z);
-  highlight.SetProperty(Actor::Property::POSITION, newPosition);
+    Vector2 layoutPos;
+    if (!highlightOverlayActor.GetProperty(Actor::Property::SCREEN_POSITION).Get(layoutPos))
+    {
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Failed to get camera position\n");
+      return;
+    }
+    auto highlightActor = mCurrentTestHighlightActor.GetHandle();
+    auto actualExtent   = DevelActor::CalculateScreenExtents(highlight.GetParent());
+    if (highlightActor != nullptr) {
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Screen Position(%.2f, %.2f)\n", screenPos.x, screenPos.y);
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: layout Position(%.2f, %.2f)\n", layoutPos.x, layoutPos.y);
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: actualExtent Position(%.2f, %.2f)\n", actualExtent.x, actualExtent.y);
+      DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: actualExtent Extent(%.2f, %.2f)\n", actualExtent.width, actualExtent.height);
+      
+      highlightActor.SetProperty(Actor::Property::POSITION, Vector2(actualExtent.x - layoutPos.x + (actualExtent.width/2), actualExtent.y - layoutPos.y + (actualExtent.height/2)));
+      highlightActor.SetProperty(Actor::Property::SIZE, Vector2(actualExtent.width, actualExtent.height));
+    }
+  }
+  DALI_LOG_RELEASE_INFO("AdjustHighlightOrientation: Orientation applied successfully\n");
+}
