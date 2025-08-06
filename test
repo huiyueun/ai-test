@@ -1,48 +1,135 @@
-// highlight-overlay-manager.h
-#ifndef DALI_TOOLKIT_HIGHLIGHT_OVERLAY_MANAGER_H
-#define DALI_TOOLKIT_HIGHLIGHT_OVERLAY_MANAGER_H
+#include "highlight-overlay-manager.h"
 
 #include <dali/public-api/actors/actor.h>
+#include <dali/public-api/math/vector2.h>
 #include <dali/public-api/math/rect.h>
+#include <dali/public-api/common/constants.h>
 #include <dali-scene3d/public-api/controls/scene-view/scene-view.h>
-#include <dali/public-api/object/weak-handle.h>
+#include <dali/devel-api/common/owner-container.h>
 
 namespace Dali::Toolkit::DevelControl
 {
 
-enum class OverlayHighlightMode : uint32_t
+HighlightOverlayManager::HighlightOverlayManager()
+: mOverlayMode(OverlayHighlightMode::Auto),
+  mManualPosition(0.0f, 0.0f),
+  mManualSize(0.0f, 0.0f)
 {
-  Auto = 0,
-  Manual
-};
+}
 
-class HighlightOverlayManager
+void HighlightOverlayManager::SetCustomHighlight(Vector2 position, Vector2 size)
 {
-public:
-  HighlightOverlayManager();
+  mManualPosition = position;
+  mManualSize     = size;
+  mOverlayMode    = OverlayHighlightMode::Manual;
+}
 
-  void SetCustomHighlight(Vector2 position, Vector2 size);
-  void ResetCustomHighlight();
+void HighlightOverlayManager::ResetCustomHighlight()
+{
+  mOverlayMode = OverlayHighlightMode::Auto;
+}
 
-  void UpdateOverlay(Dali::Actor& activeHighlight);
-  void HideOverlay();
+void HighlightOverlayManager::SetOverlayMode(OverlayHighlightMode mode)
+{
+  mOverlayMode = mode;
+}
 
-  void SetOverlayMode(OverlayHighlightMode mode);
-  OverlayHighlightMode GetOverlayMode() const;
+OverlayHighlightMode HighlightOverlayManager::GetOverlayMode() const
+{
+  return mOverlayMode;
+}
 
-private:
-  std::tuple<Scene3D::SceneView, bool> FindParentSceneView(Dali::Actor current);
-  void CreateOverlay(Scene3D::SceneView sceneView);
-  void UpdateOverlayPosition(Scene3D::SceneView sceneView, Dali::Actor& previousHighlight);
-  Rect<float> GetOverlayExtents(Scene3D::SceneView sceneView, Dali::Actor& highlight, Dali::Actor& overlay);
+void HighlightOverlayManager::UpdateOverlay(Dali::Actor& activeHighlight)
+{
+  auto [sceneView, found] = FindParentSceneView(activeHighlight);
+  if(!sceneView || !found)
+  {
+    HideOverlay();
+    return;
+  }
 
-private:
-  OverlayHighlightMode           mOverlayMode;
-  Vector2                        mManualPosition;
-  Vector2                        mManualSize;
-  Dali::WeakHandle<Dali::Actor>  mOverlayActor;
-};
+  if(!mOverlayActor)
+  {
+    CreateOverlay(sceneView);
+  }
+
+  if(mOverlayActor)
+  {
+    UpdateOverlayPosition(sceneView, activeHighlight);
+  }
+}
+
+void HighlightOverlayManager::HideOverlay()
+{
+  if(mOverlayActor)
+  {
+    auto overlay = mOverlayActor.GetHandle();
+    if(overlay)
+    {
+      overlay.SetProperty(Actor::Property::VISIBLE, false);
+    }
+  }
+}
+
+std::tuple<Scene3D::SceneView, bool> HighlightOverlayManager::FindParentSceneView(Actor current)
+{
+  Scene3D::SceneView sceneView;
+  bool hasModel = false;
+
+  while(current)
+  {
+    sceneView = Scene3D::SceneView::DownCast(current);
+    if(sceneView)
+    {
+      hasModel = true;
+      break;
+    }
+    current = current.GetParent();
+  }
+  return {sceneView, hasModel};
+}
+
+void HighlightOverlayManager::CreateOverlay(Scene3D::SceneView sceneView)
+{
+  auto overlay = Actor::New();
+  overlay.SetProperty(Actor::Property::ANCHOR_POINT, AnchorPoint::TOP_LEFT);
+  overlay.SetProperty(Actor::Property::PARENT_ORIGIN, ParentOrigin::TOP_LEFT);
+  overlay.SetProperty(Actor::Property::VISIBLE, false);
+  overlay.SetProperty(Actor::Property::COLOR, Color::YELLOW);
+  overlay.SetProperty(Actor::Property::SIZE, Vector2(0.0f, 0.0f));
+
+  sceneView.AddOverlay(overlay);
+  mOverlayActor = overlay;
+}
+
+void HighlightOverlayManager::UpdateOverlayPosition(Scene3D::SceneView sceneView, Actor& highlight)
+{
+  if(!mOverlayActor)
+    return;
+
+  auto overlay = mOverlayActor.GetHandle();
+  if(!overlay)
+    return;
+
+  Rect<float> extents = GetOverlayExtents(sceneView, highlight, overlay);
+
+  overlay.SetProperty(Actor::Property::POSITION, Vector2(extents.x, extents.y));
+  overlay.SetProperty(Actor::Property::SIZE, Vector2(extents.width, extents.height));
+  overlay.SetProperty(Actor::Property::VISIBLE, true);
+}
+
+Rect<float> HighlightOverlayManager::GetOverlayExtents(Scene3D::SceneView sceneView, Actor& highlight, Actor& overlay)
+{
+  if(mOverlayMode == OverlayHighlightMode::Manual)
+  {
+    return {mManualPosition.x, mManualPosition.y, mManualSize.width, mManualSize.height};
+  }
+
+  Vector3 size    = highlight.GetCurrentProperty<Vector3>(Actor::Property::SIZE);
+  Vector3 world   = highlight.GetCurrentProperty<Vector3>(Actor::Property::WORLD_POSITION);
+  Vector3 screen  = sceneView.WorldToScreen(world);
+
+  return {screen.x, screen.y, size.width, size.height};
+}
 
 } // namespace Dali::Toolkit::DevelControl
-
-#endif // DALI_TOOLKIT_HIGHLIGHT_OVERLAY_MANAGER_H
